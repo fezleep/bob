@@ -1,4 +1,4 @@
-import type { LeadNote } from "@/lib/leads";
+import { formatLeadDate, type LeadNote } from "@/lib/leads";
 
 export function NotesSection({ notes }: { notes: LeadNote[] }) {
   return (
@@ -15,10 +15,10 @@ export function NotesSection({ notes }: { notes: LeadNote[] }) {
           {notes.map((note) => (
             <article key={note.id} className="rounded-lg border border-border/60 bg-elevated/45 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-medium text-ink">{note.author}</p>
-                <p className="text-xs text-faint">{note.createdAt}</p>
+                <p className="text-sm font-medium text-ink">Note</p>
+                <p className="text-xs text-faint">{formatLeadDate(note.createdAt)}</p>
               </div>
-              <p className="mt-3 text-sm leading-6 text-muted">{note.body}</p>
+              <p className="mt-3 text-sm leading-6 text-muted">{note.content}</p>
             </article>
           ))}
         </div>

@@ -2,8 +2,10 @@ import { LeadList } from "@/components/lead-list";
 import { StatusPill } from "@/components/status-pill";
 import { getLeads, statuses } from "@/lib/leads";
 
-export default function LeadsPage() {
-  const leads = getLeads();
+export const dynamic = "force-dynamic";
+
+export default async function LeadsPage() {
+  const { leads } = await getLeads();
 
   return (
     <div className="space-y-6">

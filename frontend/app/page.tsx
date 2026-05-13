@@ -3,10 +3,13 @@ import { LeadList } from "@/components/lead-list";
 import { MetricCard } from "@/components/metric-card";
 import { getLeads } from "@/lib/leads";
 
-export default function Home() {
-  const leads = getLeads();
-  const activeLeads = leads.filter((lead) => lead.status !== "Closed").length;
-  const warmLeads = leads.filter((lead) => lead.status === "Qualified").length;
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const leadList = await getLeads();
+  const { leads } = leadList;
+  const activeLeads = leads.filter((lead) => !["CLOSED", "LOST"].includes(lead.status)).length;
+  const warmLeads = leads.filter((lead) => lead.status === "QUALIFIED").length;
 
   return (
     <div className="space-y-8">
@@ -32,7 +35,7 @@ export default function Home() {
       <section className="grid gap-3 md:grid-cols-3">
         <MetricCard label="Open leads" value={activeLeads.toString()} />
         <MetricCard label="Qualified" value={warmLeads.toString()} />
-        <MetricCard label="Pipeline" value="$184k" />
+        <MetricCard label="Total" value={leadList.totalElements.toString()} />
       </section>
 
       <section className="space-y-3">

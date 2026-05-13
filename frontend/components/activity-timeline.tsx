@@ -1,4 +1,4 @@
-import type { LeadActivity } from "@/lib/leads";
+import { formatActivityType, formatLeadDate, type LeadActivity } from "@/lib/leads";
 
 export function ActivityTimeline({
   activities,
@@ -18,10 +18,14 @@ export function ActivityTimeline({
             ) : null}
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-ink">{activity.label}</p>
-                <p className="mt-1 text-sm leading-5 text-muted">{activity.detail}</p>
+                <p className="text-sm font-medium text-ink">
+                  {formatActivityType(activity.type)}
+                </p>
+                <p className="mt-1 text-sm leading-5 text-muted">{activity.description}</p>
               </div>
-              <p className="shrink-0 text-xs text-faint">{activity.createdAt}</p>
+              <p className="shrink-0 text-xs text-faint">
+                {formatLeadDate(activity.createdAt)}
+              </p>
             </div>
           </div>
         ))}
