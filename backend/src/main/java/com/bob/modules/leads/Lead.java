@@ -83,6 +83,19 @@ class Lead {
         return status;
     }
 
+    void update(String name, String email, String company, LeadStatus status) {
+        this.name = name;
+        this.email = email;
+        this.company = company;
+        this.status = status;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
+    void changeStatus(LeadStatus status) {
+        this.status = status;
+        this.updatedAt = OffsetDateTime.now();
+    }
+
     OffsetDateTime getCreatedAt() {
         return createdAt;
     }
