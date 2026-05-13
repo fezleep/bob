@@ -24,16 +24,17 @@ bob should feel quiet, fast, and polished.
 
 ## Current State
 
-This repository currently contains the project foundation plus the first backend application scaffold:
+This repository currently contains the project foundation, working backend MVP core, and the first frontend foundation:
 
 - product notes
 - architecture direction
 - MVP roadmap
 - local PostgreSQL setup
-- Spring Boot backend foundation
-- frontend placeholder
+- Spring Boot backend with leads, notes, activities, and timeline support
+- Next.js frontend shell with mock lead views
 
-No product features have been implemented yet.
+The current product surface is still MVP-level: backend lead workflows exist, and
+the frontend uses mock data until API integration is introduced.
 
 ## Local Database
 
@@ -66,6 +67,18 @@ Useful local checks:
 curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/status
 ```
+
+## Frontend
+
+Run the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs on `http://localhost:3000`.
 
 ## Documentation
 

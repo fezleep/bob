@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  --surface: 4 4 5;
+  --panel: 10 10 11;
+  --elevated: 16 16 18;
+  --border: 42 42 46;
+  --ink: 245 245 245;
+  --muted: 168 168 176;
+  --faint: 107 107 116;
+  --accent: 164 181 168;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: rgb(var(--surface));
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgb(255 255 255 / 0.045), transparent 28rem),
+    linear-gradient(180deg, rgb(14 14 15), rgb(var(--surface)) 18rem);
+  color: rgb(var(--ink));
+  font-feature-settings: "ss01", "ss02", "cv01", "cv03";
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: rgb(var(--accent) / 0.28);
+  color: rgb(var(--ink));
+}
+
+@layer components {
+  .quiet-panel {
+    border: 1px solid rgb(var(--border) / 0.72);
+    background: rgb(var(--panel) / 0.78);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.035) inset;
+  }
+}
