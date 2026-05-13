@@ -5,6 +5,16 @@ import { AppShell } from "@/components/app-shell";
 export const metadata: Metadata = {
   title: "bob",
   description: "quiet software for modern teams.",
+  icons: {
+    icon: "/branding/bob-logo.png",
+    shortcut: "/branding/bob-logo.png",
+    apple: "/branding/bob-logo.png",
+  },
+  openGraph: {
+    title: "bob",
+    description: "quiet software for modern teams.",
+    images: ["/branding/bob-mascot.png"],
+  },
 };
 
 export default function RootLayout({

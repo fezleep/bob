@@ -1,5 +1,9 @@
 # bob
 
+<p align="left">
+  <img src="frontend/public/branding/bob-logo.png" alt="bob logo" width="72" />
+</p>
+
 quiet software for modern teams.
 
 bob is a calm, dark-first lead workspace built by Felipe Virginio, a product
@@ -9,6 +13,10 @@ engineering decisions, and quiet enough to keep attention on the work.
 
 Built with modern ai-assisted workflows, focused on clarity, consistency and
 product thinking.
+
+<p align="left">
+  <img src="frontend/public/branding/bob-mascot.png" alt="bob mascot" width="220" />
+</p>
 
 ## what is bob
 
@@ -78,6 +86,17 @@ screens, and a small API client in `frontend/lib`.
 - PostgreSQL schema migrations
 - backend validation and API error responses
 - focused documentation for product, architecture, roadmap, and brand
+
+## screenshots
+
+The interface is intentionally restrained: dark-first, quiet, and built around
+the lead workflow rather than decorative presentation.
+
+Recommended captures for product reviews:
+
+- Home: the opening workspace summary with the quiet brand signature.
+- Lead workspace: the lead list, status rhythm, and dark application shell.
+- Lead detail: notes and activity history in context.
 
 ## how to run locally
 

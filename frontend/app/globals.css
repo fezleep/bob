@@ -27,7 +27,8 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgb(255 255 255 / 0.035), transparent 30rem),
+    radial-gradient(circle at top left, rgb(var(--accent) / 0.055), transparent 32rem),
+    radial-gradient(circle at 82% -8rem, rgb(255 255 255 / 0.04), transparent 28rem),
     linear-gradient(180deg, rgb(12 12 13), rgb(var(--surface)) 20rem);
   color: rgb(var(--ink));
   font-feature-settings: "ss01", "ss02", "cv01", "cv03";

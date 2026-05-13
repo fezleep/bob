@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { LeadList } from "@/components/lead-list";
 import { MetricCard } from "@/components/metric-card";
@@ -12,14 +13,14 @@ export default async function Home() {
   const warmLeads = leads.filter((lead) => lead.status === "QUALIFIED").length;
 
   return (
-    <div className="space-y-8 sm:space-y-10">
-      <section className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-2xl space-y-3">
+    <div className="space-y-8 sm:space-y-11">
+      <section className="flex flex-col gap-7 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-2xl space-y-4">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">bob</p>
-          <h1 className="text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+          <h1 className="text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.7rem]">
             quiet software for modern teams.
           </h1>
-          <p className="max-w-xl text-sm leading-6 text-muted">
+          <p className="max-w-xl text-sm leading-6 text-muted sm:text-[0.95rem]">
             bob is a calm lead workspace for people who need to understand
             where conversations stand, what changed recently, and what should
             happen next.
@@ -28,6 +29,9 @@ export default async function Home() {
             It is built like a real startup product: focused workflows, a
             reliable backend foundation, and a dark-first interface that keeps
             teams close to the work instead of the noise.
+          </p>
+          <p className="pt-1 text-xs font-medium lowercase tracking-[0.12em] text-faint">
+            built quietly by felipe virginio.
           </p>
         </div>
         <Link
@@ -53,8 +57,14 @@ export default async function Home() {
 
         <div className="quiet-panel rounded-lg p-5 sm:p-6">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-[#d7bd87]/35 bg-[#d7bd87]/10 text-sm font-semibold text-[#d7bd87] shadow-[0_1px_0_rgb(255_255_255/0.035)_inset]">
-              b
+            <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d7bd87]/35 bg-[#d7bd87]/10 shadow-[0_1px_0_rgb(255_255_255/0.035)_inset]">
+              <Image
+                src="/branding/bob-logo.png"
+                alt=""
+                width={36}
+                height={36}
+                className="size-9 object-contain"
+              />
             </div>
             <div>
               <p className="text-sm font-medium text-ink">built by Felipe Virginio</p>
@@ -67,6 +77,30 @@ export default async function Home() {
             built with modern ai-assisted workflows, focused on clarity,
             consistency and product thinking.
           </p>
+        </div>
+      </section>
+
+      <section className="quiet-panel overflow-hidden rounded-lg">
+        <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_18rem]">
+          <div className="p-5 sm:p-6">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+              Brand presence
+            </p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+              bob keeps the mascot in the background: a quiet signal of care,
+              memory, and pace, without turning the product into a character.
+            </p>
+          </div>
+          <div className="relative min-h-44 border-t border-border/55 bg-elevated/25 md:border-l md:border-t-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_25%,rgb(var(--accent)/0.12),transparent_13rem)]" />
+            <Image
+              src="/branding/bob-mascot.png"
+              alt="bob mascot"
+              width={320}
+              height={320}
+              className="absolute bottom-0 right-3 h-40 w-auto object-contain opacity-85 saturate-[0.86] sm:right-5 sm:h-44"
+            />
+          </div>
         </div>
       </section>
 
