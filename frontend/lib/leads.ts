@@ -44,8 +44,25 @@ export type LeadDetail = Lead & {
   activities: LeadActivity[];
 };
 
+export type CreateLeadInput = {
+  name: string;
+  email?: string | null;
+  company?: string | null;
+  status: LeadStatus;
+};
+
 export async function getLeads() {
   return apiFetch<LeadListResponse>("/api/leads");
+}
+
+export async function createLead(input: CreateLeadInput) {
+  return apiFetch<Lead>("/api/leads", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
 }
 
 export async function getLeadById(id: string) {
