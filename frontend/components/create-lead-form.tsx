@@ -13,7 +13,7 @@ export function CreateLeadForm() {
   );
 
   return (
-    <form action={formAction} className="quiet-panel rounded-lg p-5">
+    <form action={formAction} className="quiet-panel rounded-lg p-5 sm:p-6">
       <div>
         <p className="text-sm font-medium text-ink">Create lead</p>
         <p className="mt-1 text-sm leading-6 text-muted">
@@ -54,7 +54,7 @@ export function CreateLeadForm() {
             id="lead-status"
             name="status"
             defaultValue={state.fields.status}
-            className="mt-2 h-10 w-full rounded-md border border-border/80 bg-elevated px-3 text-sm text-ink outline-none transition focus:border-accent/70 focus:ring-2 focus:ring-accent/15"
+            className="focus-ring mt-2 h-10 w-full rounded-md border border-border/75 bg-elevated/70 px-3 text-sm text-ink transition duration-200 hover:border-border"
           >
             {statuses.map((status) => (
               <option key={status} value={status}>
@@ -115,10 +115,10 @@ function FormField({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${inputId}-error` : undefined}
         className={[
-          "mt-2 h-10 w-full rounded-md border bg-elevated px-3 text-sm text-ink outline-none transition placeholder:text-faint focus:ring-2",
+          "focus-ring mt-2 h-10 w-full rounded-md border bg-elevated/70 px-3 text-sm text-ink transition duration-200 placeholder:text-faint hover:border-border",
           error
-            ? "border-red-400/60 focus:border-red-300 focus:ring-red-400/15"
-            : "border-border/80 focus:border-accent/70 focus:ring-accent/15",
+            ? "border-red-400/55 focus-visible:border-red-300 focus-visible:shadow-[0_0_0_1px_rgb(252_165_165/0.22),0_0_0_4px_rgb(248_113_113/0.1)]"
+            : "border-border/75",
         ].join(" ")}
       />
       {error ? (
@@ -137,7 +137,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="mt-5 h-10 w-full rounded-md border border-accent/35 bg-accent/16 px-3 text-sm font-medium text-ink transition hover:bg-accent/22 disabled:cursor-not-allowed disabled:opacity-60"
+      className="focus-ring mt-5 h-10 w-full rounded-md border border-accent/32 bg-accent/[0.14] px-3 text-sm font-medium text-ink transition duration-200 hover:border-accent/45 hover:bg-accent/[0.19] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
     >
       {pending ? "Creating..." : "Create lead"}
     </button>

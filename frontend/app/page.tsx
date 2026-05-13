@@ -12,11 +12,11 @@ export default async function Home() {
   const warmLeads = leads.filter((lead) => lead.status === "QUALIFIED").length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 sm:space-y-10">
       <section className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-2xl space-y-3">
-          <p className="text-sm text-muted">Today</p>
-          <h1 className="text-3xl font-semibold tracking-normal text-ink sm:text-4xl">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">Today</p>
+          <h1 className="text-3xl font-semibold leading-tight text-ink sm:text-4xl">
             A quieter view of the pipeline.
           </h1>
           <p className="max-w-xl text-sm leading-6 text-muted">
@@ -26,7 +26,7 @@ export default async function Home() {
         </div>
         <Link
           href="/leads"
-          className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-ink px-4 text-sm font-medium text-black transition hover:bg-white"
+          className="focus-ring inline-flex h-10 items-center justify-center rounded-md border border-white/80 bg-ink px-4 text-sm font-medium text-black transition duration-200 hover:bg-white active:scale-[0.99] sm:self-auto"
         >
           Open leads
         </Link>
@@ -39,9 +39,9 @@ export default async function Home() {
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <h2 className="text-sm font-medium text-ink">Recent leads</h2>
-          <Link href="/leads" className="text-sm text-muted transition hover:text-ink">
+          <Link href="/leads" className="focus-ring rounded-md text-sm text-muted transition duration-200 hover:text-ink">
             View all
           </Link>
         </div>

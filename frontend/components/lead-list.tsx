@@ -4,8 +4,8 @@ import { StatusPill } from "@/components/status-pill";
 
 export function LeadList({ leads }: { leads: Lead[] }) {
   return (
-    <div className="overflow-hidden rounded-lg border border-border/70 bg-panel/[0.72] shadow-quiet">
-      <div className="hidden grid-cols-[1.3fr_0.8fr_0.8fr] border-b border-border/70 px-4 py-3 text-xs text-faint md:grid">
+    <div className="quiet-panel overflow-hidden rounded-lg">
+      <div className="hidden grid-cols-[1.3fr_0.8fr_0.8fr] border-b border-border/60 bg-elevated/[0.18] px-4 py-3 text-xs font-medium text-faint md:grid">
         <span>Company</span>
         <span>Status</span>
         <span className="text-right">Updated</span>
@@ -16,7 +16,7 @@ export function LeadList({ leads }: { leads: Lead[] }) {
           <Link
             key={lead.id}
             href={`/leads/${lead.id}`}
-            className="grid gap-3 px-4 py-4 transition hover:bg-elevated/55 md:grid-cols-[1.3fr_0.8fr_0.8fr] md:items-center"
+            className="focus-ring grid gap-3 border border-transparent px-4 py-4 transition duration-200 hover:bg-elevated/42 hover:shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] md:grid-cols-[1.3fr_0.8fr_0.8fr] md:items-center"
           >
             <div className="min-w-0">
               <div className="flex items-center justify-between gap-3 md:block">
@@ -27,7 +27,7 @@ export function LeadList({ leads }: { leads: Lead[] }) {
                   <StatusPill status={lead.status} />
                 </div>
               </div>
-              <p className="mt-1 truncate text-sm text-muted">
+              <p className="mt-1 truncate text-sm leading-5 text-muted">
                 {lead.name}
                 {lead.email ? ` · ${lead.email}` : ""}
               </p>

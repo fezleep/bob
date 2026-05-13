@@ -9,7 +9,7 @@ export default function AppError({ reset }: { reset: () => void }) {
       </p>
       <button
         onClick={reset}
-        className="mt-5 h-9 rounded-md border border-border bg-elevated px-3 text-sm text-ink transition hover:bg-white/10"
+        className="focus-ring mt-5 h-9 rounded-md border border-border/75 bg-elevated/70 px-3 text-sm text-ink transition duration-200 hover:border-border hover:bg-white/[0.075] active:scale-[0.98]"
       >
         Try again
       </button>

@@ -34,7 +34,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
 
   return (
     <div className="space-y-6">
-      <Link href="/leads" className="text-sm text-muted transition hover:text-ink">
+      <Link href="/leads" className="focus-ring inline-flex rounded-md text-sm text-muted transition duration-200 hover:text-ink">
         Back to leads
       </Link>
 
@@ -42,7 +42,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-3">
-              <h1 className="text-2xl font-semibold text-ink">
+              <h1 className="text-2xl font-semibold leading-tight text-ink">
                 {lead.company || lead.name}
               </h1>
               <StatusPill status={lead.status} />
@@ -69,8 +69,8 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
 
 function DetailStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-md border border-border/60 bg-elevated/55 p-3">
-      <p className="text-xs text-faint">{label}</p>
+    <div className="rounded-md border border-border/60 bg-elevated/[0.42] p-3 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset]">
+      <p className="text-xs font-medium text-faint">{label}</p>
       <p className="mt-1 text-sm font-medium text-ink">{value}</p>
     </div>
   );

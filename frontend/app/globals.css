@@ -4,10 +4,10 @@
 
 :root {
   color-scheme: dark;
-  --surface: 4 4 5;
-  --panel: 10 10 11;
-  --elevated: 16 16 18;
-  --border: 42 42 46;
+  --surface: 3 3 4;
+  --panel: 9 9 10;
+  --elevated: 17 17 19;
+  --border: 39 39 43;
   --ink: 245 245 245;
   --muted: 168 168 176;
   --faint: 107 107 116;
@@ -20,14 +20,15 @@
 
 html {
   background: rgb(var(--surface));
+  scroll-behavior: smooth;
 }
 
 body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgb(255 255 255 / 0.045), transparent 28rem),
-    linear-gradient(180deg, rgb(14 14 15), rgb(var(--surface)) 18rem);
+    radial-gradient(circle at top left, rgb(255 255 255 / 0.035), transparent 30rem),
+    linear-gradient(180deg, rgb(12 12 13), rgb(var(--surface)) 20rem);
   color: rgb(var(--ink));
   font-feature-settings: "ss01", "ss02", "cv01", "cv03";
   text-rendering: optimizeLegibility;
@@ -40,8 +41,72 @@ body {
 
 @layer components {
   .quiet-panel {
-    border: 1px solid rgb(var(--border) / 0.72);
-    background: rgb(var(--panel) / 0.78);
-    box-shadow: 0 1px 0 rgb(255 255 255 / 0.035) inset;
+    border: 1px solid rgb(var(--border) / 0.68);
+    background: rgb(var(--panel) / 0.82);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.035) inset,
+      0 18px 60px rgb(0 0 0 / 0.18);
+  }
+
+  .focus-ring {
+    outline: none;
+  }
+
+  .focus-ring:focus-visible {
+    border-color: rgb(var(--accent) / 0.62);
+    box-shadow:
+      0 0 0 1px rgb(var(--accent) / 0.24),
+      0 0 0 4px rgb(var(--accent) / 0.1);
+  }
+
+  .subtle-card {
+    transition:
+      border-color 180ms ease,
+      background-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+
+  .subtle-card:hover {
+    border-color: rgb(var(--border) / 0.95);
+    background-color: rgb(var(--elevated) / 0.5);
+    transform: translateY(-1px);
+  }
+
+  .skeleton {
+    position: relative;
+    overflow: hidden;
+    background: rgb(var(--elevated) / 0.74);
+  }
+
+  .skeleton::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(255 255 255 / 0.055),
+      transparent
+    );
+    animation: skeleton-shimmer 1.8s ease-in-out infinite;
+  }
+}
+
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
