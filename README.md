@@ -1,42 +1,85 @@
 # bob
 
-bob is a calm, minimal, dark-first lead management platform for modern teams.
+quiet software for modern teams.
 
-The goal is not to build a generic CRM or a loud AI product. bob is focused on helping teams track leads, understand context, and move work forward without turning the interface into a dashboard full of noise.
+bob is a calm, dark-first lead workspace built by Felipe Virginio, a product
+engineer and backend-focused builder. It is designed as a real startup product:
+simple enough for anyone to understand, structured enough to show serious
+engineering decisions, and quiet enough to keep attention on the work.
 
-This project is being built as a practical fullstack portfolio project with a strong backend foundation. The first version will be a modular monolith: one deployable application, clear internal boundaries, and enough structure to evolve without pretending it needs microservices on day one.
+Built with modern ai-assisted workflows, focused on clarity, consistency and
+product thinking.
 
-## Product Direction
+## what is bob
 
-bob should feel quiet, fast, and polished.
+bob helps teams manage leads, notes, status changes, and recent activity in one
+minimal workspace.
 
-- Black and white first, with muted accent colors only where they help.
-- Minimal interface inspired by tools like Linear, Vercel, Railway, Notion, and Arc.
-- AI features should be discreet and useful, not the center of the product.
-- The product should feel light on the surface and thoughtful underneath.
+For recruiters and non-technical people, bob is a small CRM-like product for
+tracking conversations with potential customers. For tech leads, it is a
+fullstack product foundation with a Spring Boot backend, a PostgreSQL database,
+and a Next.js interface.
 
-## Stack
+## why it exists
 
-- Backend: Java 21, Spring Boot 3, PostgreSQL, Flyway
-- Frontend: Next.js, TypeScript, Tailwind
-- Infrastructure: Docker Compose
-- Security: Spring Security later, once the domain shape is clearer
+Most CRM tools feel heavy before a small team needs that much process. bob
+starts from the opposite direction: a focused lead workflow, clear data, and a
+calm interface.
 
-## Current State
+The project also exists as a mature portfolio piece. It shows product judgment,
+backend architecture, frontend execution, documentation, and a practical path
+for future AI features without making AI the product's personality.
 
-This repository currently contains the project foundation, working backend MVP core, and the first frontend foundation:
+## what it does
 
-- product notes
-- architecture direction
-- MVP roadmap
-- local PostgreSQL setup
-- Spring Boot backend with leads, notes, activities, and timeline support
-- Next.js frontend shell with mock lead views
+bob currently supports the core lead workflow:
 
-The current product surface is still MVP-level: backend lead workflows exist, and
-the frontend uses mock data until API integration is introduced.
+- create and list leads
+- track lead status
+- view lead details
+- add notes to a lead
+- review activity history
+- connect the frontend to the backend through a typed API layer
 
-## Local Database
+## tech stack
+
+- Backend: Java 21, Spring Boot 3, Spring Web, Spring Data JPA
+- Database: PostgreSQL, Flyway
+- Frontend: Next.js, React, TypeScript, Tailwind CSS
+- Local infrastructure: Docker Compose
+- Testing: Spring Boot tests, frontend lint/build checks
+
+## architecture
+
+bob starts as a modular monolith.
+
+The backend is one deployable application with clear internal modules. This
+keeps local development simple while leaving room for stronger boundaries as the
+product grows.
+
+Current backend direction:
+
+- `modules/leads` owns the lead workflow
+- `modules/system` exposes system status
+- `shared/api` centralizes API error handling
+- Flyway migrations define the database contract
+
+The frontend uses the Next.js app router with reusable components, route-level
+screens, and a small API client in `frontend/lib`.
+
+## features
+
+- dark-first application shell
+- lead list and recent lead overview
+- lead detail pages
+- status labels
+- notes and activity timeline support
+- loading and error states
+- PostgreSQL schema migrations
+- backend validation and API error responses
+- focused documentation for product, architecture, roadmap, and brand
+
+## how to run locally
 
 Start PostgreSQL:
 
@@ -44,31 +87,12 @@ Start PostgreSQL:
 docker compose up -d
 ```
 
-Stop PostgreSQL:
-
-```bash
-docker compose down
-```
-
-The local database values are documented in `.env.example`.
-
-## Backend
-
 Run the backend:
 
 ```bash
 cd backend
 mvn spring-boot:run
 ```
-
-Useful local checks:
-
-```bash
-curl http://localhost:8080/actuator/health
-curl http://localhost:8080/api/status
-```
-
-## Frontend
 
 Run the frontend:
 
@@ -78,10 +102,50 @@ npm install
 npm run dev
 ```
 
-The frontend runs on `http://localhost:3000`.
+The frontend expects an API base URL:
 
-## Documentation
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
+```
 
-- `docs/product.md` explains what bob is and what it should feel like.
-- `docs/architecture.md` explains the modular monolith direction.
+Useful backend checks:
+
+```bash
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/api/status
+```
+
+## current status
+
+bob is in MVP stage.
+
+The backend contains the core lead domain, persistence, migrations, API
+endpoints, validation, and tests. The frontend contains the app shell, lead
+views, API integration, and the first pass of the product presentation layer.
+
+## future roadmap
+
+- authentication and workspace ownership
+- follow-up dates and lead ownership
+- richer filtering and search
+- saved views
+- quiet AI assistance for summaries, stale leads, and next-step suggestions
+- deployment pipeline
+- observability basics
+
+AI features should stay attached to useful workflows. bob should not become a
+loud assistant interface.
+
+## author
+
+Built by Felipe Virginio.
+
+Product engineer / backend-focused builder.
+
+## documentation
+
+- `docs/product.md` explains the product direction.
+- `docs/architecture.md` explains the modular monolith approach.
 - `docs/roadmap.md` outlines the MVP path.
+- `docs/brand.md` defines the presentation and mascot direction.
+- `README.pt-BR.md` contains the Portuguese version.

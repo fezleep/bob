@@ -4,7 +4,7 @@ import { AppShell } from "@/components/app-shell";
 
 export const metadata: Metadata = {
   title: "bob",
-  description: "A calm lead workspace for modern teams.",
+  description: "quiet software for modern teams.",
 };
 
 export default function RootLayout({
