@@ -83,6 +83,10 @@ export async function getLeadDetail(id: string): Promise<LeadDetail> {
   };
 }
 
+export async function getLeadActivities(id: string) {
+  return apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`);
+}
+
 export function formatLeadStatus(status: LeadStatus) {
   return status
     .toLowerCase()
