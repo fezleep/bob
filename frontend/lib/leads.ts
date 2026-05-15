@@ -133,11 +133,13 @@ export function formatLeadStatus(status: LeadStatus) {
 }
 
 export function formatActivityType(type: LeadActivityType) {
-  return type
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+  const labels: Record<LeadActivityType, string> = {
+    LEAD_CREATED: "Conversation opened",
+    STATUS_CHANGED: "Status shifted",
+    NOTE_ADDED: "Note captured",
+  };
+
+  return labels[type];
 }
 
 export function formatLeadDate(value: string) {
@@ -146,4 +148,115 @@ export function formatLeadDate(value: string) {
     day: "numeric",
     year: "numeric",
   }).format(new Date(value));
+}
+
+function getHourPeriod(date: Date) {
+  const hour = date.getHours();
+
+  if (hour < 12) {
+    return "this morning";
+  }
+
+  if (hour < 18) {
+    return "this afternoon";
+  }
+
+  return "this evening";
+}
+
+function formatRelativeAmount(value: number, unit: string) {
+  return `${value} ${unit}${value === 1 ? "" : "s"} ago`;
+}
+
+export function formatTemporalPhrase(value: string, now = new Date()) {
+  const date = new Date(value);
+  const timestamp = date.getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return "movement recorded";
+  }
+
+  const elapsedMs = Math.max(0, now.getTime() - timestamp);
+  const elapsedMinutes = Math.floor(elapsedMs / 60_000);
+  const elapsedHours = Math.floor(elapsedMs / 3_600_000);
+  const elapsedDays = Math.floor(elapsedMs / 86_400_000);
+
+  if (elapsedMinutes < 8) {
+    return "updated recently";
+  }
+
+  if (elapsedHours < 1) {
+    return "last movement within the hour";
+  }
+
+  if (elapsedHours < 6) {
+    return `last movement ${formatRelativeAmount(elapsedHours, "hour")}`;
+  }
+
+  if (elapsedDays < 1) {
+    return `active ${getHourPeriod(date)}`;
+  }
+
+  if (elapsedDays === 1) {
+    return "last movement yesterday";
+  }
+
+  if (elapsedDays < 7) {
+    return `last movement ${formatRelativeAmount(elapsedDays, "day")}`;
+  }
+
+  return `quiet since ${formatLeadDate(value)}`;
+}
+
+export function formatQuietTemporalPhrase(value: string, now = new Date()) {
+  const date = new Date(value);
+  const timestamp = date.getTime();
+
+  if (Number.isNaN(timestamp)) {
+    return "quiet for now";
+  }
+
+  const elapsedMs = Math.max(0, now.getTime() - timestamp);
+  const elapsedHours = Math.floor(elapsedMs / 3_600_000);
+  const elapsedDays = Math.floor(elapsedMs / 86_400_000);
+
+  if (elapsedHours < 1) {
+    return "updated recently";
+  }
+
+  if (elapsedDays < 1) {
+    return `quiet ${getHourPeriod(now)}`;
+  }
+
+  if (elapsedDays < 7) {
+    return `quiet for ${elapsedDays} day${elapsedDays === 1 ? "" : "s"}`;
+  }
+
+  return `quiet since ${formatLeadDate(value)}`;
+}
+
+export function formatCurrentQuietPhrase(now = new Date()) {
+  return `quiet ${getHourPeriod(now)}`;
+}
+
+export function formatCurrentPeriod(now = new Date()) {
+  return getHourPeriod(now);
+}
+
+export function formatActivityDescription(activity: LeadActivity) {
+  if (activity.type === "LEAD_CREATED") {
+    return "A new conversation entered the room.";
+  }
+
+  if (activity.type === "NOTE_ADDED") {
+    return "Context was added for the next move.";
+  }
+
+  if (activity.type === "STATUS_CHANGED") {
+    return activity.description
+      .replace("Status changed from", "Moved from")
+      .replace(" to ", " into ");
+  }
+
+  return activity.description;
 }

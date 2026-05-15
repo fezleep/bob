@@ -27,9 +27,11 @@ body {
   min-height: 100vh;
   margin: 0;
   background:
-    radial-gradient(circle at top left, rgb(var(--accent) / 0.055), transparent 32rem),
-    radial-gradient(circle at 82% -8rem, rgb(255 255 255 / 0.04), transparent 28rem),
-    linear-gradient(180deg, rgb(12 12 13), rgb(var(--surface)) 20rem);
+    linear-gradient(90deg, rgb(255 255 255 / 0.018) 1px, transparent 1px),
+    radial-gradient(circle at top left, rgb(var(--accent) / 0.042), transparent 34rem),
+    radial-gradient(circle at 82% -8rem, rgb(255 255 255 / 0.032), transparent 30rem),
+    linear-gradient(180deg, rgb(13 13 14), rgb(var(--surface)) 22rem);
+  background-size: 7rem 7rem, auto, auto, auto;
   color: rgb(var(--ink));
   font-feature-settings: "ss01", "ss02", "cv01", "cv03";
   text-rendering: optimizeLegibility;
@@ -43,7 +45,9 @@ body {
 @layer components {
   .quiet-panel {
     border: 1px solid rgb(var(--border) / 0.68);
-    background: rgb(var(--panel) / 0.82);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.026), transparent 9rem),
+      rgb(var(--panel) / 0.82);
     box-shadow:
       0 1px 0 rgb(255 255 255 / 0.035) inset,
       0 18px 60px rgb(0 0 0 / 0.18);
@@ -65,7 +69,8 @@ body {
       border-color 180ms ease,
       background-color 180ms ease,
       box-shadow 180ms ease,
-      transform 180ms ease;
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 180ms ease;
   }
 
   .subtle-card:hover {
@@ -74,8 +79,94 @@ body {
     transform: translateY(-1px);
   }
 
+  .premium-card {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgb(var(--border) / 0.66);
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.034), transparent 8.5rem),
+      rgb(var(--panel) / 0.78);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.035) inset,
+      0 22px 70px rgb(0 0 0 / 0.22);
+  }
+
+  .premium-card::before {
+    position: absolute;
+    inset-inline: 1.2rem;
+    top: 0;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.18), transparent);
+    opacity: 0.8;
+  }
+
+  .soft-row {
+    transition:
+      background-color 190ms ease,
+      border-color 190ms ease,
+      box-shadow 190ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .soft-row:hover {
+    background-color: rgb(var(--elevated) / 0.34);
+    box-shadow: 0 1px 0 rgb(255 255 255 / 0.026) inset;
+    transform: translateY(-1px);
+  }
+
+  .disclosure-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    opacity: 0;
+    transform: translateY(-2px);
+    transition:
+      grid-template-rows 220ms cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 180ms ease,
+      transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .group:hover .disclosure-panel,
+  .group:focus-within .disclosure-panel,
+  details[open] .disclosure-panel {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .disclosure-panel > * {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  details > summary {
+    list-style: none;
+  }
+
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+
   .motion-rise {
     animation: motion-rise 520ms ease both;
+  }
+
+  .motion-fade {
+    animation: motion-fade 640ms ease both;
+  }
+
+  .rhythm-dot {
+    position: relative;
+  }
+
+  .rhythm-dot::after {
+    position: absolute;
+    inset: -5px;
+    content: "";
+    border-radius: 9999px;
+    border: 1px solid rgb(var(--accent) / 0.22);
+    opacity: 0;
+    animation: rhythm-pulse 3.6s ease-out infinite;
   }
 
   .pipeline-bar {
@@ -130,6 +221,18 @@ body {
   }
 }
 
+@keyframes motion-fade {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes pipeline-grow {
   from {
     opacity: 0.2;
@@ -139,6 +242,23 @@ body {
   to {
     opacity: 1;
     transform: scaleX(1);
+  }
+}
+
+@keyframes rhythm-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+
+  18% {
+    opacity: 0.55;
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
   }
 }
 

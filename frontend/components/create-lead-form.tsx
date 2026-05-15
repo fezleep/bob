@@ -15,7 +15,10 @@ export function CreateLeadForm() {
   return (
     <form action={formAction} className="quiet-panel rounded-lg p-5 sm:p-6">
       <div>
-        <p className="text-sm font-medium text-ink">Create lead</p>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+          Capture
+        </p>
+        <p className="mt-2 text-sm font-medium text-ink">Create lead</p>
         <p className="mt-1 text-sm leading-6 text-muted">
           Add a contact to the pipeline.
         </p>
@@ -115,7 +118,7 @@ function FormField({
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${inputId}-error` : undefined}
         className={[
-          "focus-ring mt-2 h-10 w-full rounded-md border bg-elevated/70 px-3 text-sm text-ink transition duration-200 placeholder:text-faint hover:border-border",
+          "focus-ring mt-2 h-10 w-full rounded-md border bg-elevated/55 px-3 text-sm text-ink transition duration-200 placeholder:text-faint hover:border-border hover:bg-elevated/70",
           error
             ? "border-red-400/55 focus-visible:border-red-300 focus-visible:shadow-[0_0_0_1px_rgb(252_165_165/0.22),0_0_0_4px_rgb(248_113_113/0.1)]"
             : "border-border/75",

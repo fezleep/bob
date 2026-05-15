@@ -1,7 +1,7 @@
 import { CreateLeadForm } from "@/components/create-lead-form";
 import { LeadList } from "@/components/lead-list";
 import { StatusPill } from "@/components/status-pill";
-import { getLeads, statuses } from "@/lib/leads";
+import { formatCurrentQuietPhrase, getLeads, statuses } from "@/lib/leads";
 
 export const dynamic = "force-dynamic";
 
@@ -16,12 +16,23 @@ export default async function LeadsPage() {
             Pipeline
           </p>
           <h1 className="mt-2 text-2xl font-semibold leading-tight text-ink">Leads</h1>
+          <p className="mt-2 text-sm text-muted">
+            A calm read on what is moving, waiting, and {formatCurrentQuietPhrase()}.
+          </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          {statuses.map((status) => (
-            <StatusPill key={status} status={status} />
-          ))}
-        </div>
+        <details className="group sm:max-w-sm">
+          <summary className="focus-ring inline-flex cursor-pointer items-center gap-2 rounded-md text-sm text-faint transition duration-200 hover:text-muted sm:justify-end">
+            <span className="size-1.5 rounded-full bg-accent/55" />
+            Status key
+          </summary>
+          <div className="disclosure-panel mt-3">
+            <div className="flex flex-wrap gap-2">
+              {statuses.map((status) => (
+                <StatusPill key={status} status={status} />
+              ))}
+            </div>
+          </div>
+        </details>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">

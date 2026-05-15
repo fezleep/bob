@@ -1,4 +1,9 @@
-import { formatActivityType, formatLeadDate, type LeadActivity } from "@/lib/leads";
+import {
+  formatActivityDescription,
+  formatActivityType,
+  formatTemporalPhrase,
+  type LeadActivity,
+} from "@/lib/leads";
 
 export function ActivityTimeline({
   activities,
@@ -7,13 +12,22 @@ export function ActivityTimeline({
 }) {
   return (
     <section className="quiet-panel rounded-lg p-5 sm:p-6">
-      <h2 className="text-sm font-medium text-ink">Activity</h2>
+      <div>
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+          Timeline
+        </p>
+        <h2 className="mt-2 text-sm font-medium text-ink">Activity</h2>
+      </div>
 
       {activities.length > 0 ? (
         <div className="mt-5 space-y-5">
           {activities.map((activity, index) => (
-            <div key={activity.id} className="relative pl-5">
-              <div className="absolute left-0 top-1.5 size-2 rounded-full bg-accent/85 ring-4 ring-accent/[0.08]" />
+            <div
+              key={activity.id}
+              className="motion-fade relative pl-5"
+              style={{ animationDelay: `${index * 58}ms` }}
+            >
+              <div className="rhythm-dot absolute left-0 top-1.5 size-2 rounded-full bg-accent/85 ring-4 ring-accent/[0.08]" />
               {index < activities.length - 1 ? (
                 <div className="absolute bottom-[-1.25rem] left-[3px] top-4 w-px bg-border/80" />
               ) : null}
@@ -23,11 +37,11 @@ export function ActivityTimeline({
                     {formatActivityType(activity.type)}
                   </p>
                   <p className="mt-1 text-sm leading-5 text-muted">
-                    {activity.description}
+                    {formatActivityDescription(activity)}
                   </p>
                 </div>
                 <p className="shrink-0 text-xs text-faint">
-                  {formatLeadDate(activity.createdAt)}
+                  {formatTemporalPhrase(activity.createdAt)}
                 </p>
               </div>
             </div>

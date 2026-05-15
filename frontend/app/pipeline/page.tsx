@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { PipelineBoard } from "@/components/pipeline-board";
+import {
+  getLeadIntelligenceCounts,
+  getPipelineHealthTone,
+} from "@/lib/lead-intelligence";
 import { getAllLeads, statuses } from "@/lib/leads";
 
 export const dynamic = "force-dynamic";
@@ -10,12 +14,13 @@ export default async function PipelinePage() {
     direction: "desc",
   });
   const openLeads = leads.filter((lead) => !["CLOSED", "LOST"].includes(lead.status));
+  const intelligenceCounts = getLeadIntelligenceCounts(leads);
+  const pipelineTone = getPipelineHealthTone(leads);
 
   return (
     <div className="space-y-6 sm:space-y-7">
-      <section className="relative overflow-hidden rounded-lg border border-border/70 bg-panel/80 p-5 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_28px_90px_rgb(0_0_0/0.24)] sm:p-6 lg:p-7">
+      <section className="premium-card rounded-lg p-5 sm:p-6 lg:p-7">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgb(var(--accent)/0.13),transparent_17rem),radial-gradient(circle_at_86%_0%,rgb(255_255_255/0.065),transparent_18rem)]" />
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/24 to-transparent" />
 
         <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-3xl">
@@ -34,6 +39,7 @@ export default async function PipelinePage() {
           <div className="grid min-w-56 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-1">
             <PipelineStat label="Total leads" value={leads.length} />
             <PipelineStat label="Open work" value={openLeads.length} />
+            <PipelineStat label="Needs follow-up" value={intelligenceCounts.needingAttention} />
             <Link
               href="/leads"
               className="focus-ring inline-flex h-12 items-center justify-center rounded-md border border-border/70 bg-elevated/50 px-4 text-sm font-medium text-ink transition duration-200 hover:border-border hover:bg-elevated/80 sm:col-span-1"
@@ -41,6 +47,20 @@ export default async function PipelinePage() {
               Manage leads
             </Link>
           </div>
+        </div>
+      </section>
+
+      <section className="quiet-panel motion-rise rounded-lg px-5 py-4 sm:px-6">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+              Operational read
+            </p>
+            <p className="mt-1 text-sm font-medium text-ink">{pipelineTone.label}</p>
+          </div>
+          <p className="max-w-2xl text-sm leading-6 text-muted sm:text-right">
+            {pipelineTone.detail}
+          </p>
         </div>
       </section>
 
@@ -71,7 +91,7 @@ export default async function PipelinePage() {
 
 function PipelineStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-md border border-border/65 bg-surface/45 p-3 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset]">
+    <div className="rounded-md border border-border/55 bg-surface/38 p-3 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset]">
       <p className="text-xs font-medium text-faint">{label}</p>
       <p className="mt-1 text-xl font-semibold tabular-nums text-ink">{value}</p>
     </div>

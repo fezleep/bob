@@ -3,8 +3,16 @@ import Link from "next/link";
 import { LeadList } from "@/components/lead-list";
 import { StatusPill } from "@/components/status-pill";
 import {
+  getLeadIntelligenceCounts,
+  getPipelineHealthTone,
+  isLeadNeedingAttention,
+} from "@/lib/lead-intelligence";
+import {
+  formatActivityDescription,
   formatActivityType,
-  formatLeadDate,
+  formatCurrentQuietPhrase,
+  formatCurrentPeriod,
+  formatTemporalPhrase,
   getLeadActivities,
   getLeads,
   statuses,
@@ -20,9 +28,6 @@ type ActivityWithLead = LeadActivity & {
   leadCompany: string | null;
 };
 
-const activeStatuses: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED"];
-const attentionStatuses: LeadStatus[] = ["NEW", "CONTACTED"];
-
 const statusCopy: Record<LeadStatus, string> = {
   NEW: "Fresh conversations waiting for a first move.",
   CONTACTED: "People already in motion.",
@@ -35,11 +40,6 @@ function sortByUpdatedAt(leads: Lead[]) {
   return [...leads].sort(
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
-}
-
-function daysSince(value: string) {
-  const elapsed = Date.now() - new Date(value).getTime();
-  return Math.max(0, Math.floor(elapsed / 86_400_000));
 }
 
 async function getRecentActivities(leads: Lead[]) {
@@ -67,52 +67,50 @@ export default async function Home() {
   const { leads } = leadList;
   const recentActivities = await getRecentActivities(leads);
   const recentLeads = sortByUpdatedAt(leads).slice(0, 5);
-  const activeLeads = leads.filter((lead) => activeStatuses.includes(lead.status));
-  const attentionLeads = leads.filter((lead) => attentionStatuses.includes(lead.status));
-  const qualifiedLeads = leads.filter((lead) => lead.status === "QUALIFIED");
-  const movedRecently = leads.filter((lead) => daysSince(lead.updatedAt) <= 7);
+  const attentionLeads = leads.filter((lead) => isLeadNeedingAttention(lead));
+  const intelligenceCounts = getLeadIntelligenceCounts(leads);
+  const pipelineTone = getPipelineHealthTone(leads);
   const totalPipeline = Math.max(leads.length, 1);
 
   const summaryCards = [
     {
       label: "Needs attention",
-      value: attentionLeads.length,
+      value: intelligenceCounts.needingAttention,
       detail:
         attentionLeads.length > 0
-          ? `${attentionLeads[0].company || attentionLeads[0].name} should not sit too long.`
-          : "Nothing urgent is waiting for a reply.",
+          ? `${attentionLeads[0].company || attentionLeads[0].name} needs follow-up.`
+          : `Nothing urgent is waiting ${formatCurrentPeriod()}.`,
     },
     {
-      label: "Qualified leads",
-      value: qualifiedLeads.length,
+      label: "Newly qualified",
+      value: intelligenceCounts.newlyQualified,
       detail:
-        qualifiedLeads.length > 0
-          ? "There are warm conversations worth protecting."
-          : "No qualified leads yet. The next clear signal will stand out here.",
+        intelligenceCounts.newlyQualified > 0
+          ? "Fresh qualified signal is worth staying close to."
+          : "No qualified leads yet. The next clear signal will surface here.",
     },
     {
-      label: "Active pipeline",
-      value: activeLeads.length,
+      label: "Quiet leads",
+      value: intelligenceCounts.inactive,
       detail:
-        activeLeads.length > 0
-          ? "Open work is still moving before it becomes closed memory."
-          : "The board is quiet. Add a lead when the next conversation starts.",
+        intelligenceCounts.inactive > 0
+          ? "Some open conversations have been quiet for 5 days."
+          : `No open lead has gone ${formatCurrentQuietPhrase()} yet.`,
     },
     {
       label: "Recent movement",
-      value: movedRecently.length,
+      value: intelligenceCounts.recentlyUpdated,
       detail:
-        movedRecently.length > 0
-          ? "Something changed in the last seven days."
-          : "No recent movement. A note or status change will wake this up.",
+        intelligenceCounts.recentlyUpdated > 0
+          ? "Something changed in the last few days."
+          : "No recent movement. A note or status change will bring it back into motion.",
     },
   ];
 
   return (
     <div className="space-y-6 sm:space-y-7">
-      <section className="relative overflow-hidden rounded-lg border border-border/70 bg-panel/80 p-5 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_28px_90px_rgb(0_0_0/0.28)] sm:p-6 lg:p-7">
+      <section className="premium-card rounded-lg p-5 sm:p-6 lg:p-7">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgb(var(--accent)/0.14),transparent_17rem),radial-gradient(circle_at_86%_4%,rgb(255_255_255/0.075),transparent_18rem)]" />
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
 
         <div className="relative grid gap-7 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-end">
           <div className="max-w-3xl">
@@ -144,16 +142,15 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="border-l border-border/70 pl-5">
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
-              Today&apos;s read
-            </p>
+          <div className="rounded-lg border border-border/55 bg-surface/32 p-4 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] lg:border-l lg:border-y-0 lg:border-r-0 lg:bg-transparent lg:p-0 lg:pl-5 lg:shadow-none">
+            <div className="flex items-center gap-2">
+              <span className="rhythm-dot size-1.5 rounded-full bg-accent/80" />
+              <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+                Today&apos;s read
+              </p>
+            </div>
             <p className="mt-3 text-sm leading-6 text-muted">
-              {attentionLeads.length > 0
-                ? `${attentionLeads.length} lead${
-                    attentionLeads.length === 1 ? "" : "s"
-                  } need a human follow-up.`
-                : "No lead is asking for immediate attention."}
+              {pipelineTone.label}. {pipelineTone.detail}
             </p>
             <Link
               href="/leads"
@@ -169,22 +166,31 @@ export default async function Home() {
         {summaryCards.map((card, index) => (
           <article
             key={card.label}
-            className="quiet-panel subtle-card motion-rise rounded-lg p-4"
+            className="quiet-panel subtle-card motion-rise group rounded-lg p-4"
             style={{ animationDelay: `${index * 70}ms` }}
           >
-            <p className="text-xs font-medium uppercase tracking-[0.14em] text-faint">
-              {card.label}
-            </p>
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-xs font-medium uppercase tracking-[0.14em] text-faint">
+                {card.label}
+              </p>
+              <span className="mt-1 size-1.5 rounded-full bg-accent/50 opacity-0 transition duration-200 group-hover:opacity-100" />
+            </div>
             <p className="mt-4 text-3xl font-semibold tabular-nums text-ink">
               {card.value}
             </p>
-            <p className="mt-3 min-h-10 text-sm leading-5 text-muted">{card.detail}</p>
+            <div className="disclosure-panel mt-3">
+              <p className="text-sm leading-5 text-muted">{card.detail}</p>
+            </div>
           </article>
         ))}
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.9fr)]">
-        <PipelineOverview leads={leads} totalPipeline={totalPipeline} />
+        <PipelineOverview
+          leads={leads}
+          pipelineTone={pipelineTone}
+          totalPipeline={totalPipeline}
+        />
         <RecentActivity activities={recentActivities} />
       </section>
 
@@ -219,9 +225,11 @@ export default async function Home() {
 
 function PipelineOverview({
   leads,
+  pipelineTone,
   totalPipeline,
 }: {
   leads: Lead[];
+  pipelineTone: ReturnType<typeof getPipelineHealthTone>;
   totalPipeline: number;
 }) {
   return (
@@ -236,7 +244,10 @@ function PipelineOverview({
               Where conversations sit
             </h2>
           </div>
-          <p className="text-sm text-muted">{leads.length} total leads</p>
+          <div className="text-sm text-muted sm:text-right">
+            <p className="font-medium text-ink">{pipelineTone.label}</p>
+            <p className="mt-1 text-faint">{leads.length} total leads</p>
+          </div>
         </div>
       </div>
 
@@ -247,11 +258,11 @@ function PipelineOverview({
             const width = Math.max((count / totalPipeline) * 100, count > 0 ? 7 : 0);
 
             return (
-              <div key={status} className="group">
+              <div key={status} className="group rounded-md px-1 py-1 transition duration-200 hover:bg-elevated/[0.18]">
                 <div className="mb-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
                     <StatusPill status={status} />
-                    <span className="hidden text-sm text-muted sm:inline">
+                    <span className="hidden text-sm text-faint opacity-0 transition duration-200 group-hover:text-muted group-hover:opacity-100 sm:inline">
                       {statusCopy[status]}
                     </span>
                   </div>
@@ -291,8 +302,12 @@ function RecentActivity({ activities }: { activities: ActivityWithLead[] }) {
       {activities.length > 0 ? (
         <div className="mt-5 space-y-5">
           {activities.map((activity, index) => (
-            <div key={activity.id} className="relative pl-5">
-              <div className="absolute left-0 top-1.5 size-2 rounded-full bg-accent/85 ring-4 ring-accent/[0.08]" />
+            <div
+              key={activity.id}
+              className="motion-fade relative pl-5"
+              style={{ animationDelay: `${index * 58}ms` }}
+            >
+              <div className="rhythm-dot absolute left-0 top-1.5 size-2 rounded-full bg-accent/85 ring-4 ring-accent/[0.08]" />
               {index < activities.length - 1 ? (
                 <div className="absolute bottom-[-1.25rem] left-[3px] top-4 w-px bg-border/75" />
               ) : null}
@@ -302,14 +317,14 @@ function RecentActivity({ activities }: { activities: ActivityWithLead[] }) {
                     {formatActivityType(activity.type)}
                   </p>
                   <p className="shrink-0 text-xs text-faint">
-                    {formatLeadDate(activity.createdAt)}
+                    {formatTemporalPhrase(activity.createdAt)}
                   </p>
                 </div>
                 <p className="mt-1 text-sm leading-5 text-muted">
                   {activity.leadCompany || activity.leadName}
                 </p>
                 <p className="mt-1 text-sm leading-5 text-faint">
-                  {activity.description}
+                  {formatActivityDescription(activity)}
                 </p>
               </div>
             </div>
