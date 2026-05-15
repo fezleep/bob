@@ -2,7 +2,7 @@ import { formatLeadStatus, type LeadStatus } from "@/lib/leads";
 
 const statusStyles: Record<LeadStatus, string> = {
   NEW: "border-border/80 bg-elevated/65 text-muted",
-  CONTACTED: "border-white/15 bg-white/[0.075] text-ink",
+  CONTACTED: "border-accent/18 bg-accent/[0.06] text-ink",
   QUALIFIED: "border-accent/35 bg-accent/[0.085] text-ink",
   CLOSED: "border-border/60 bg-transparent text-faint",
   LOST: "border-border/60 bg-transparent text-faint",
