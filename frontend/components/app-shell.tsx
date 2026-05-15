@@ -8,6 +8,7 @@ import type { ReactNode } from "react";
 const navItems = [
   { href: "/", label: "Home" },
   { href: "/leads", label: "Leads" },
+  { href: "/pipeline", label: "Pipeline" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {

@@ -39,6 +39,14 @@ type LeadListResponse = {
   totalPages: number;
 };
 
+type GetLeadsOptions = {
+  page?: number;
+  size?: number;
+  sort?: "createdAt" | "updatedAt" | "name" | "status" | "company";
+  direction?: "asc" | "desc";
+  status?: LeadStatus;
+};
+
 export type LeadDetail = Lead & {
   notes: LeadNote[];
   activities: LeadActivity[];
@@ -51,8 +59,37 @@ export type CreateLeadInput = {
   status: LeadStatus;
 };
 
-export async function getLeads() {
-  return apiFetch<LeadListResponse>("/api/leads");
+export async function getLeads(options: GetLeadsOptions = {}) {
+  const params = new URLSearchParams();
+
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined) {
+      params.set(key, String(value));
+    }
+  });
+
+  const query = params.size > 0 ? `?${params.toString()}` : "";
+
+  return apiFetch<LeadListResponse>(`/api/leads${query}`);
+}
+
+export async function getAllLeads(options: Omit<GetLeadsOptions, "page" | "size"> = {}) {
+  const firstPage = await getLeads({ ...options, page: 0, size: 100 });
+
+  if (firstPage.totalPages <= 1) {
+    return firstPage.leads;
+  }
+
+  const remainingPages = await Promise.all(
+    Array.from({ length: firstPage.totalPages - 1 }, (_, index) =>
+      getLeads({ ...options, page: index + 1, size: 100 })
+    )
+  );
+
+  return [
+    ...firstPage.leads,
+    ...remainingPages.flatMap((page) => page.leads),
+  ];
 }
 
 export async function createLead(input: CreateLeadInput) {
