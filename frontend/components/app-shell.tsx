@@ -7,12 +7,18 @@ import type { ReactNode } from "react";
 
 const navItems = [
   { href: "/", label: "Home" },
-  { href: "/leads", label: "Leads" },
+  { href: "/workspace", label: "Workspace" },
   { href: "/pipeline", label: "Pipeline" },
+  { href: "/leads", label: "Leads" },
+  { href: "/about", label: "About" },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const activeSection =
+    navItems.find((item) =>
+      item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
+    )?.label ?? "bob";
 
   return (
     <div className="min-h-screen bg-surface/20">
@@ -47,13 +53,16 @@ export function AppShell({ children }: { children: ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={[
-                  "focus-ring flex h-9 items-center rounded-md border border-transparent px-2 text-sm transition duration-200",
+                  "focus-ring flex h-9 items-center justify-between rounded-md border border-transparent px-2 text-sm transition duration-200",
                   active
-                    ? "border-border/65 bg-elevated/75 text-ink shadow-[0_1px_0_rgb(255_255_255/0.045)_inset,0_12px_36px_rgb(0_0_0/0.18)]"
+                    ? "border-accent/28 bg-elevated/75 text-ink shadow-[0_1px_0_rgb(255_255_255/0.05)_inset,0_12px_36px_rgb(0_0_0/0.18)]"
                     : "text-muted hover:bg-elevated/45 hover:text-ink",
                 ].join(" ")}
               >
-                {item.label}
+                <span>{item.label}</span>
+                {active ? (
+                  <span className="size-1.5 rounded-full bg-accent/85 shadow-[0_0_16px_rgb(var(--accent)/0.45)]" />
+                ) : null}
               </Link>
             );
           })}
@@ -85,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="text-sm font-semibold">bob</span>
             </Link>
             <div className="hidden text-xs font-medium uppercase tracking-[0.16em] text-faint lg:block">
-              Leads workspace
+              {activeSection}
             </div>
             <div className="flex items-center gap-3">
               <div className="hidden h-8 w-56 items-center rounded-md border border-border/50 bg-panel/72 px-3 text-sm text-faint shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] sm:flex">
@@ -94,6 +103,27 @@ export function AppShell({ children }: { children: ReactNode }) {
               <div className="size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]" />
             </div>
           </div>
+          <nav className="flex gap-1 overflow-x-auto border-t border-border/45 px-4 py-2 sm:px-6 lg:hidden">
+            {navItems.map((item) => {
+              const active =
+                item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    "focus-ring shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium transition duration-200",
+                    active
+                      ? "border-accent/28 bg-elevated/75 text-ink"
+                      : "border-transparent text-muted hover:bg-elevated/45 hover:text-ink",
+                  ].join(" ")}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </header>
 
         <main className="mx-auto w-full max-w-6xl px-4 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
