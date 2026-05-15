@@ -72,6 +72,12 @@ export default async function Home() {
   const qualifiedLeads = leads.filter((lead) => lead.status === "QUALIFIED");
   const movedRecently = leads.filter((lead) => daysSince(lead.updatedAt) <= 7);
   const totalPipeline = Math.max(leads.length, 1);
+  const bobRead =
+    attentionLeads.length > 0
+      ? "bob noticed something worth revisiting"
+      : movedRecently.length > 0
+        ? "one conversation is warming up"
+        : "things feel quiet right now";
 
   const summaryCards = [
     {
@@ -110,20 +116,20 @@ export default async function Home() {
 
   return (
     <div className="space-y-6 sm:space-y-7">
-      <section className="relative overflow-hidden rounded-lg border border-border/70 bg-panel/80 p-5 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_28px_90px_rgb(0_0_0/0.28)] sm:p-6 lg:p-7">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgb(var(--accent)/0.14),transparent_17rem),radial-gradient(circle_at_86%_4%,rgb(255_255_255/0.075),transparent_18rem)]" />
+      <section className="relative overflow-hidden rounded-lg border border-border/60 bg-panel/80 p-5 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_28px_90px_rgb(0_0_0/0.28)] sm:p-6 lg:p-8">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_16%,rgb(var(--accent)/0.16),transparent_17rem),radial-gradient(circle_at_86%_4%,rgb(var(--champagne)/0.06),transparent_18rem)]" />
         <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
 
-        <div className="relative grid gap-7 lg:grid-cols-[minmax(0,1fr)_19rem] lg:items-end">
+        <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3">
-              <span className="flex size-9 items-center justify-center overflow-hidden rounded-md border border-[#d7bd87]/35 bg-[#d7bd87]/10 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]">
+              <span className="flex size-10 items-center justify-center overflow-hidden rounded-md border border-accent/30 bg-accent/10 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]">
                 <Image
                   src="/branding/bob-logo.png"
                   alt=""
-                  width={36}
-                  height={36}
-                  className="size-9 object-contain"
+                  width={40}
+                  height={40}
+                  className="size-10 object-contain"
                   priority
                 />
               </span>
@@ -131,33 +137,34 @@ export default async function Home() {
                 <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
                   bob overview
                 </p>
-                <p className="mt-1 text-sm text-muted">Founder pipeline</p>
+                <p className="mt-1 text-sm text-muted">Conversation operations</p>
               </div>
             </div>
 
-            <h1 className="mt-6 max-w-2xl text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.6rem]">
-              The work in front of you, without the noise.
+            <h1 className="mt-7 max-w-2xl text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.72rem]">
+              A calm workspace for the conversations that move the business.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-[0.95rem]">
-              A calm operational read on who needs attention, where the pipeline
-              is warming up, and what moved recently.
+              bob helps you understand people, opportunities, and operational
+              momentum without turning the pipeline into a noisy command center.
             </p>
           </div>
 
-          <div className="border-l border-border/70 pl-5">
+          <div className="rounded-lg border border-accent/18 bg-black/[0.14] p-4 shadow-[0_1px_0_rgb(255_255_255/0.03)_inset] backdrop-blur">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
               Today&apos;s read
             </p>
-            <p className="mt-3 text-sm leading-6 text-muted">
+            <p className="mt-3 text-sm font-medium text-ink">{bobRead}.</p>
+            <p className="mt-2 text-sm leading-6 text-muted">
               {attentionLeads.length > 0
                 ? `${attentionLeads.length} lead${
                     attentionLeads.length === 1 ? "" : "s"
-                  } need a human follow-up.`
+                  } could use a deliberate follow-up.`
                 : "No lead is asking for immediate attention."}
             </p>
             <Link
               href="/leads"
-              className="focus-ring mt-5 inline-flex h-10 items-center justify-center rounded-md border border-white/80 bg-ink px-4 text-sm font-medium text-black transition duration-200 hover:bg-white active:scale-[0.99]"
+              className="focus-ring warm-button mt-5 inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition duration-200 active:scale-[0.99]"
             >
               Open leads
             </Link>
@@ -186,6 +193,21 @@ export default async function Home() {
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.9fr)]">
         <PipelineOverview leads={leads} totalPipeline={totalPipeline} />
         <RecentActivity activities={recentActivities} />
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-3">
+        <OperationalLayer
+          title="Attention"
+          body="bob keeps the near-term follow-up visible first, then lets the rest sit quietly underneath."
+        />
+        <OperationalLayer
+          title="Context"
+          body="Notes and status changes become conversation memory instead of another dashboard to manage."
+        />
+        <OperationalLayer
+          title="Momentum"
+          body="The product favors small, meaningful signals over constant alerts and inflated urgency."
+        />
       </section>
 
       <section className="space-y-3">
@@ -269,6 +291,20 @@ function PipelineOverview({
               </div>
             );
           })}
+          <details className="disclosure-panel rounded-lg p-4 transition duration-200">
+            <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 rounded-md text-sm font-medium text-ink">
+              View details
+              <span className="text-xs text-faint">Pipeline meaning</span>
+            </summary>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {statuses.map((status) => (
+                <div key={status} className="rounded-md bg-black/[0.12] p-3">
+                  <StatusPill status={status} />
+                  <p className="mt-2 text-sm leading-5 text-muted">{statusCopy[status]}</p>
+                </div>
+              ))}
+            </div>
+          </details>
         </div>
       ) : (
         <EmptyState
@@ -277,6 +313,25 @@ function PipelineOverview({
         />
       )}
     </section>
+  );
+}
+
+function OperationalLayer({ title, body }: { title: string; body: string }) {
+  return (
+    <details className="disclosure-panel group rounded-lg p-4 transition duration-200">
+      <summary className="focus-ring flex cursor-pointer list-none items-center justify-between gap-4 rounded-md">
+        <span>
+          <span className="block text-xs font-medium uppercase tracking-[0.14em] text-faint">
+            Layer
+          </span>
+          <span className="mt-2 block text-sm font-medium text-ink">{title}</span>
+        </span>
+        <span className="text-sm text-muted transition duration-200 group-open:rotate-45">
+          +
+        </span>
+      </summary>
+      <p className="mt-4 text-sm leading-6 text-muted">{body}</p>
+    </details>
   );
 }
 

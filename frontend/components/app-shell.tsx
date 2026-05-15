@@ -16,22 +16,25 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-surface/20">
-      <aside className="fixed inset-y-0 left-0 hidden w-64 overflow-hidden border-r border-border/70 bg-surface/90 px-4 py-4 shadow-[24px_0_80px_rgb(0_0_0/0.18)] backdrop-blur-2xl lg:block">
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-[radial-gradient(circle_at_24px_18px,rgb(var(--accent)/0.13),transparent_15rem)]" />
+      <aside className="fixed inset-y-0 left-0 hidden w-64 overflow-hidden border-r border-border/60 bg-surface/90 px-4 py-4 shadow-[24px_0_80px_rgb(0_0_0/0.2)] backdrop-blur-2xl lg:block">
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_24px_18px,rgb(var(--accent)/0.15),transparent_15rem)]" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
 
         <Link href="/" className="focus-ring relative flex h-10 items-center gap-3 rounded-md px-2 transition hover:bg-elevated/35">
-          <span className="flex size-7 items-center justify-center overflow-hidden rounded-md border border-border/80 bg-elevated/80 shadow-[0_1px_0_rgb(255_255_255/0.05)_inset]">
+          <span className="flex size-8 items-center justify-center overflow-hidden rounded-md border border-accent/25 bg-elevated/80 shadow-[0_1px_0_rgb(255_255_255/0.05)_inset]">
             <Image
               src="/branding/bob-logo.png"
               alt=""
-              width={28}
-              height={28}
-              className="size-7 object-contain"
+              width={32}
+              height={32}
+              className="size-8 object-contain"
               priority
             />
           </span>
-          <span className="text-sm font-semibold text-ink">bob</span>
+          <span>
+            <span className="block text-sm font-semibold text-ink">bob</span>
+            <span className="block text-[0.68rem] leading-3 text-faint">calm ops</span>
+          </span>
         </Link>
 
         <nav className="relative mt-8 space-y-1.5">
@@ -56,9 +59,12 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
-        <div className="absolute inset-x-4 bottom-4 rounded-lg border border-border/60 bg-panel/76 p-3 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_20px_50px_rgb(0_0_0/0.24)] backdrop-blur-xl">
-          <p className="text-xs font-medium text-faint">Workspace</p>
-          <p className="mt-1 truncate text-sm font-medium text-ink">Founder pipeline</p>
+        <div className="absolute inset-x-4 bottom-4 rounded-lg border border-accent/16 bg-panel/76 p-3 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_20px_50px_rgb(0_0_0/0.24)] backdrop-blur-xl">
+          <div className="flex items-center gap-2">
+            <span className="size-1.5 rounded-full bg-accent/80 shadow-[0_0_18px_rgb(var(--accent)/0.38)]" />
+            <p className="text-xs font-medium text-faint">bob is watching the rhythm</p>
+          </div>
+          <p className="mt-2 text-sm leading-5 text-muted">Things feel quiet right now.</p>
         </div>
       </aside>
 
@@ -82,10 +88,10 @@ export function AppShell({ children }: { children: ReactNode }) {
               Leads workspace
             </div>
             <div className="flex items-center gap-3">
-              <div className="hidden h-8 w-56 items-center rounded-md border border-border/60 bg-panel/72 px-3 text-sm text-faint shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] sm:flex">
-                Search leads
+              <div className="hidden h-8 w-56 items-center rounded-md border border-border/50 bg-panel/72 px-3 text-sm text-faint shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] sm:flex">
+                Search conversations
               </div>
-              <div className="size-7 rounded-full border border-border/70 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]" />
+              <div className="size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]" />
             </div>
           </div>
         </header>

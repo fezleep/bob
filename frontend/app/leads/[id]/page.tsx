@@ -39,7 +39,7 @@ function getMomentumRead(lead: LeadDetail) {
   }
 
   if (quietDays >= 4) {
-    return "quiet since monday";
+    return `quiet for ${quietDays} days`;
   }
 
   return "conversation warming up";
@@ -110,7 +110,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       </Link>
 
       <section className="relative overflow-hidden rounded-lg border border-border/60 bg-panel/80 p-5 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_30px_90px_rgb(0_0_0/0.26)] sm:p-6 lg:p-7">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgb(var(--accent)/0.13),transparent_18rem),radial-gradient(circle_at_86%_0%,rgb(255_255_255/0.06),transparent_20rem)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_12%,rgb(var(--accent)/0.14),transparent_18rem),radial-gradient(circle_at_86%_0%,rgb(var(--champagne)/0.055),transparent_20rem)]" />
         <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-white/25 to-transparent" />
 
         <div className="relative grid gap-8 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-end">
@@ -146,7 +146,15 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
               Operational read
             </p>
-            <p className="mt-3 text-sm leading-6 text-muted">
+            <p className="mt-3 text-sm font-medium text-ink">
+              {lead.status === "QUALIFIED"
+                ? "one conversation is warming up"
+                : lead.status === "NEW" || lead.status === "CONTACTED"
+                  ? "bob noticed something worth revisiting"
+                  : "things feel quiet right now"}
+              .
+            </p>
+            <p className="mt-2 text-sm leading-6 text-muted">
               {getNextBestRead(lead)}
             </p>
             <div className="mt-5 grid grid-cols-2 gap-3">
