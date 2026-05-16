@@ -1,16 +1,19 @@
 import { CreateLeadForm } from "@/components/create-lead-form";
-import { LeadList } from "@/components/lead-list";
+import { LeadWorkspace } from "@/components/lead-workspace";
 import { StatusPill } from "@/components/status-pill";
-import { getLeads, statuses } from "@/lib/leads";
+import { getAllLeads, statuses } from "@/lib/leads";
 
 export const dynamic = "force-dynamic";
 
 export default async function LeadsPage() {
-  const { leads } = await getLeads();
+  const leads = await getAllLeads({
+    sort: "updatedAt",
+    direction: "desc",
+  });
   const openLeads = leads.filter((lead) => !["CLOSED", "LOST"].includes(lead.status));
   const quietCopy =
     leads.length > 0
-      ? "Open a lead preview to scan the relationship, then step into the full page only when the work needs depth."
+      ? "Search and filter instantly, scan the relationship in preview, then step into the full page only when the work needs depth."
       : "Create the first lead and bob will start turning conversations into a readable operating rhythm.";
 
   return (
@@ -34,12 +37,18 @@ export default async function LeadsPage() {
         </div>
       </section>
 
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
+      <section className="flex flex-col gap-4 rounded-lg border border-border/55 bg-black/[0.12] p-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="max-w-xl">
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
             Status map
           </p>
-          <h2 className="mt-2 text-sm font-medium text-ink">A quiet scan of where each conversation sits</h2>
+          <h2 className="mt-2 text-sm font-medium text-ink">
+            A calm structure for scanning the full conversation set
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Filters keep the list focused. The status language stays visible here,
+            but the detail only opens when you need it.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {statuses.map((status) => (
@@ -49,20 +58,13 @@ export default async function LeadsPage() {
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start">
-        {leads.length > 0 ? (
-          <LeadList leads={leads} />
-        ) : (
-          <div className="quiet-panel rounded-lg px-6 py-12 text-center sm:px-10">
-            <div className="mx-auto flex size-10 items-center justify-center rounded-md border border-border/70 bg-elevated/60 text-sm font-medium text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset]">
-              0
-            </div>
-            <h2 className="mt-5 text-base font-medium text-ink">Start the workspace</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-muted">
-              Create the first lead to give bob a conversation, a signal, and a
-              place to collect operational memory.
-            </p>
-          </div>
-        )}
+        <LeadWorkspace
+          leads={leads}
+          title="Lead index"
+          description="Everything is organized for fast operational scanning first. Search by person, company, or email, then narrow the room with status-aware views."
+          emptyTitle="Start the workspace"
+          emptyBody="Create the first lead to give bob a conversation, a signal, and a place to collect operational memory."
+        />
 
         <div className="xl:sticky xl:top-20">
           <CreateLeadForm />
