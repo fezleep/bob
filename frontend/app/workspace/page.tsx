@@ -1,12 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { LeadList } from "@/components/lead-list";
+import { LeadWorkspace } from "@/components/lead-workspace";
 import { StatusPill } from "@/components/status-pill";
 import {
   formatActivityType,
   formatLeadDate,
+  getAllLeads,
   getLeadActivities,
-  getLeads,
   statuses,
   type Lead,
   type LeadActivity,
@@ -63,10 +63,11 @@ async function getRecentActivities(leads: Lead[]) {
 }
 
 export default async function WorkspacePage() {
-  const leadList = await getLeads();
-  const { leads } = leadList;
+  const leads = await getAllLeads({
+    sort: "updatedAt",
+    direction: "desc",
+  });
   const recentActivities = await getRecentActivities(leads);
-  const recentLeads = sortByUpdatedAt(leads).slice(0, 5);
   const activeLeads = leads.filter((lead) => activeStatuses.includes(lead.status));
   const attentionLeads = leads.filter((lead) => attentionStatuses.includes(lead.status));
   const qualifiedLeads = leads.filter((lead) => lead.status === "QUALIFIED");
@@ -214,26 +215,27 @@ export default async function WorkspacePage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
-              Recent leads
+              Lead focus
             </p>
-            <h2 className="mt-1 text-sm font-medium text-ink">People closest to motion</h2>
+            <h2 className="mt-1 text-sm font-medium text-ink">
+              Search the workspace without opening the full archive
+            </h2>
           </div>
           <Link
             href="/leads"
             className="focus-ring rounded-md text-sm text-muted transition duration-200 hover:text-ink"
           >
-            View all
+            Full lead view
           </Link>
         </div>
 
-        {recentLeads.length > 0 ? (
-          <LeadList leads={recentLeads} />
-        ) : (
-          <EmptyState
-            title="No leads yet"
-            body="The overview gets more useful once the first conversation enters the pipeline."
-          />
-        )}
+        <LeadWorkspace
+          leads={leads}
+          title="Operational lead focus"
+          description="This layer keeps search and intelligent filters near the workspace overview, so you can narrow to the next conversation without pulling the whole product apart."
+          emptyTitle="No leads yet"
+          emptyBody="The overview gets more useful once the first conversation enters the pipeline."
+        />
       </section>
     </div>
   );

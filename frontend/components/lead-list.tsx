@@ -18,10 +18,21 @@ const leadReads: Record<LeadStatus, string> = {
   LOST: "The loop is closed, but the context remains useful.",
 };
 
-export function LeadList({ leads }: { leads: Lead[] }) {
+export function LeadList({
+  leads,
+  embedded = false,
+}: {
+  leads: Lead[];
+  embedded?: boolean;
+}) {
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
 
   useEffect(() => {
+    if (selectedLead && !leads.some((lead) => lead.id === selectedLead.id)) {
+      setSelectedLead(null);
+      return;
+    }
+
     if (!selectedLead) {
       return;
     }
@@ -35,11 +46,15 @@ export function LeadList({ leads }: { leads: Lead[] }) {
     window.addEventListener("keydown", closeOnEscape);
 
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [selectedLead]);
+  }, [leads, selectedLead]);
 
   return (
     <>
-      <div className="quiet-panel overflow-hidden rounded-lg">
+      <div
+        className={`overflow-hidden rounded-lg ${
+          embedded ? "border border-border/50 bg-black/[0.12]" : "quiet-panel"
+        }`}
+      >
         <div className="hidden grid-cols-[1.3fr_0.8fr_0.8fr_6.5rem] border-b border-border/55 bg-elevated/[0.14] px-4 py-3 text-xs font-medium text-faint md:grid">
           <span>Conversation</span>
           <span>Status</span>
