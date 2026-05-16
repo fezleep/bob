@@ -22,9 +22,6 @@ export function NotesSection({
             make the next move obvious.
           </p>
         </div>
-        <button className="focus-ring h-9 rounded-md border border-border/65 bg-elevated/60 px-3 text-sm text-ink shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] transition duration-200 hover:border-border hover:bg-white/[0.07] active:scale-[0.98]">
-          Add note
-        </button>
       </div>
 
       {notes.length > 0 ? (
