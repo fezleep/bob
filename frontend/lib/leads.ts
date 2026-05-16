@@ -59,6 +59,13 @@ export type CreateLeadInput = {
   status: LeadStatus;
 };
 
+export type UpdateLeadInput = {
+  name: string;
+  email?: string | null;
+  company?: string | null;
+  status: LeadStatus;
+};
+
 export async function getLeads(options: GetLeadsOptions = {}) {
   const params = new URLSearchParams();
 
@@ -102,6 +109,16 @@ export async function createLead(input: CreateLeadInput) {
   });
 }
 
+export async function updateLead(id: string, input: UpdateLeadInput) {
+  return apiFetch<Lead>(`/api/leads/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(input),
+  });
+}
+
 export async function getLeadById(id: string) {
   return apiFetch<Lead>(`/api/leads/${id}`);
 }
@@ -118,6 +135,26 @@ export async function getLeadDetail(id: string): Promise<LeadDetail> {
     notes,
     activities,
   };
+}
+
+export async function changeLeadStatus(id: string, status: LeadStatus) {
+  return apiFetch<Lead>(`/api/leads/${id}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ status }),
+  });
+}
+
+export async function addLeadNote(id: string, content: string) {
+  return apiFetch<LeadNote>(`/api/leads/${id}/notes`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ content }),
+  });
 }
 
 export async function getLeadActivities(id: string) {

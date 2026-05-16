@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityTimeline } from "@/components/activity-timeline";
+import { LeadDetailActions } from "@/components/lead-detail-actions";
 import { NotesSection } from "@/components/notes-section";
 import { StatusPill } from "@/components/status-pill";
 import { ApiError } from "@/lib/api";
@@ -183,6 +184,17 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           ) : null}
         </section>
       ) : null}
+
+      <LeadDetailActions
+        key={`${lead.updatedAt}-${lead.notes.length}-${lead.status}`}
+        lead={{
+          id: lead.id,
+          name: lead.name,
+          email: lead.email,
+          company: lead.company,
+          status: lead.status,
+        }}
+      />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
         <NotesSection notes={lead.notes} momentumRead={momentumRead} />
