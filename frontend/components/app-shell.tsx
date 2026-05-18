@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { CommandPalette } from "@/components/command-palette";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -15,13 +16,34 @@ const navItems = [
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const activeSection =
     navItems.find((item) =>
       item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
     )?.label ?? "bob";
+  const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), []);
+  const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), []);
+
+  useEffect(() => {
+    function openFromKeyboard(event: KeyboardEvent) {
+      const key = event.key.toLowerCase();
+      const primaryShortcut = key === "k" && (event.metaKey || event.ctrlKey);
+      const fallbackShortcut = key === "k" && event.ctrlKey && event.shiftKey;
+
+      if (primaryShortcut || fallbackShortcut) {
+        event.preventDefault();
+        openCommandPalette();
+      }
+    }
+
+    window.addEventListener("keydown", openFromKeyboard);
+
+    return () => window.removeEventListener("keydown", openFromKeyboard);
+  }, [openCommandPalette]);
 
   return (
     <div className="min-h-screen bg-surface/20">
+      <CommandPalette open={commandPaletteOpen} onClose={closeCommandPalette} />
       <aside className="fixed inset-y-0 left-0 hidden w-64 overflow-hidden border-r border-border/60 bg-surface/90 px-4 py-4 shadow-[24px_0_80px_rgb(0_0_0/0.2)] backdrop-blur-2xl lg:block">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(circle_at_24px_18px,rgb(var(--accent)/0.15),transparent_15rem)]" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent" />
@@ -97,9 +119,26 @@ export function AppShell({ children }: { children: ReactNode }) {
               {activeSection}
             </div>
             <div className="flex items-center gap-3">
-              <div className="hidden h-8 w-56 items-center rounded-md border border-border/50 bg-panel/72 px-3 text-sm text-faint shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] sm:flex">
-                Search conversations
-              </div>
+              <button
+                type="button"
+                onClick={openCommandPalette}
+                className="focus-ring hidden h-8 w-64 items-center justify-between rounded-md border border-border/65 bg-panel/88 px-2.5 text-sm text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset] transition duration-200 hover:border-accent/34 hover:bg-elevated/64 hover:text-ink sm:flex"
+                aria-label="Open command palette"
+              >
+                <span>Search Bob</span>
+                <span className="flex items-center gap-1 text-[0.66rem] font-medium uppercase tracking-[0.1em] text-faint">
+                  <kbd className="rounded border border-border/70 bg-black/28 px-1.5 py-0.5">Ctrl/Cmd K</kbd>
+                  <kbd className="rounded border border-border/70 bg-black/28 px-1.5 py-0.5">Ctrl+Shift+K</kbd>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={openCommandPalette}
+                className="focus-ring flex size-8 items-center justify-center rounded-md border border-border/65 bg-panel/88 text-sm font-semibold text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset] transition duration-200 hover:border-accent/34 hover:bg-elevated/64 hover:text-ink sm:hidden"
+                aria-label="Open command palette"
+              >
+                K
+              </button>
               <div className="size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]" />
             </div>
           </div>
