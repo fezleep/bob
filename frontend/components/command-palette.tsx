@@ -13,6 +13,10 @@ const navigationItems = [
   { label: "About", href: "/about", helper: "Read the product story" },
 ];
 
+function normalizeSearchValue(value: string | null | undefined) {
+  return value ?? "";
+}
+
 type CommandPaletteProps = {
   open: boolean;
   onClose: () => void;
@@ -99,14 +103,16 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     }
   }, [open]);
 
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = normalizeSearchValue(query).trim().toLowerCase();
   const filteredNavigation = useMemo(() => {
     if (!normalizedQuery) {
       return navigationItems;
     }
 
     return navigationItems.filter((item) =>
-      `${item.label} ${item.helper}`.toLowerCase().includes(normalizedQuery)
+      `${normalizeSearchValue(item.label)} ${normalizeSearchValue(item.helper)}`
+        .toLowerCase()
+        .includes(normalizedQuery)
     );
   }, [normalizedQuery]);
 
@@ -114,6 +120,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     const searchableLeads = normalizedQuery
       ? leads.filter((lead) =>
           [lead.name, lead.email, lead.company]
+            .map(normalizeSearchValue)
             .filter(Boolean)
             .join(" ")
             .toLowerCase()
@@ -215,9 +222,9 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
               {filteredLeads.map((lead) => (
                 <CommandButton
                   key={lead.id}
-                  title={lead.name}
+                  title={normalizeSearchValue(lead.name) || "Untitled lead"}
                   eyebrow={formatLeadStatus(lead.status)}
-                  helper={[lead.company, lead.email].filter(Boolean).join(" - ")}
+                  helper={[lead.company, lead.email].map(normalizeSearchValue).filter(Boolean).join(" - ")}
                   onSelect={() => runCommand(`/leads/${lead.id}`)}
                 />
               ))}
@@ -247,7 +254,7 @@ function CommandSection({
   title,
   children,
 }: {
-  title: string;
+  title: string | null | undefined;
   children: ReactNode;
 }) {
   return (
@@ -278,11 +285,13 @@ function CommandButton({
       className="focus-ring group flex w-full items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-left transition duration-150 hover:border-accent/24 hover:bg-elevated/68 focus-visible:border-accent/45 focus-visible:bg-elevated/72"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-black/28 text-xs font-semibold text-muted transition group-hover:border-accent/28 group-hover:text-[rgb(var(--champagne))]">
-        {title.charAt(0).toUpperCase()}
+        {normalizeSearchValue(title).charAt(0).toUpperCase() || "?"}
       </span>
       <span className="min-w-0 flex-1">
         <span className="flex items-center justify-between gap-3">
-          <span className="truncate text-sm font-medium text-ink">{title}</span>
+          <span className="truncate text-sm font-medium text-ink">
+            {normalizeSearchValue(title) || "Untitled"}
+          </span>
           <span className="shrink-0 text-[0.68rem] font-medium uppercase tracking-[0.12em] text-faint">
             {eyebrow}
           </span>

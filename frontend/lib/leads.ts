@@ -167,20 +167,24 @@ export async function getLeadActivities(id: string, authToken?: string) {
   return apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`, { authToken });
 }
 
-export function formatLeadStatus(status: LeadStatus) {
-  return status
+function titleizeEnum(value: string | null | undefined, fallback = "Unknown") {
+  if (!value) {
+    return fallback;
+  }
+
+  return String(value)
     .toLowerCase()
     .split("_")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(" ");
 }
 
-export function formatActivityType(type: LeadActivityType) {
-  return type
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
+export function formatLeadStatus(status: LeadStatus | null | undefined) {
+  return titleizeEnum(status);
+}
+
+export function formatActivityType(type: LeadActivityType | null | undefined) {
+  return titleizeEnum(type);
 }
 
 export function formatLeadDate(value: string) {

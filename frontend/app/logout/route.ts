@@ -1,10 +1,13 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { authCookieName } from "@/lib/server-auth";
+import { authCookieName, authCookieOptions } from "@/lib/auth-cookie";
 
 export async function GET(request: NextRequest) {
   const response = NextResponse.redirect(new URL("/login", request.url));
-  response.cookies.delete(authCookieName);
+  response.cookies.set(authCookieName, "", {
+    ...authCookieOptions,
+    maxAge: 0,
+  });
   (await cookies()).delete(authCookieName);
 
   return response;

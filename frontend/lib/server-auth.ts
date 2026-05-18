@@ -1,8 +1,9 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { authCookieName } from "@/lib/auth-cookie";
 
-export const authCookieName = "bob_token";
+export { authCookieName };
 
 export async function getAuthToken() {
   return (await cookies()).get(authCookieName)?.value ?? null;

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { authCookieName } from "@/lib/auth-cookie";
 
 const protectedRoutes = ["/workspace", "/pipeline", "/leads"];
 
@@ -11,7 +12,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = request.cookies.get("bob_token")?.value;
+  const token = request.cookies.get(authCookieName)?.value;
 
   if (token) {
     return NextResponse.next();

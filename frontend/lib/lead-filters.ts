@@ -82,6 +82,10 @@ function isOpenLead(status: LeadStatus) {
   return status !== "CLOSED" && status !== "LOST";
 }
 
+function searchableValue(value: string | null | undefined) {
+  return value ?? "";
+}
+
 export function isRecentLead(lead: Lead, now = Date.now()) {
   return (
     getDaysSince(lead.createdAt, now) <= recentDays ||
@@ -128,13 +132,14 @@ export function matchesLeadFilter(
 }
 
 export function matchesLeadSearch(lead: Lead, query: string) {
-  const normalizedQuery = query.trim().toLowerCase();
+  const normalizedQuery = searchableValue(query).trim().toLowerCase();
 
   if (!normalizedQuery) {
     return true;
   }
 
   const haystack = [lead.name, lead.email, lead.company]
+    .map(searchableValue)
     .filter(Boolean)
     .join(" ")
     .toLowerCase();

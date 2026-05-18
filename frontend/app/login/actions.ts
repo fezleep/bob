@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import { login, register, type AuthResponse } from "@/lib/auth";
-import { authCookieName } from "@/lib/server-auth";
+import { authCookieName, authCookieOptions } from "@/lib/auth-cookie";
 
 export type AuthFormState = {
   fields: {
@@ -16,10 +16,8 @@ export type AuthFormState = {
 
 async function setAuthCookie(response: AuthResponse) {
   (await cookies()).set(authCookieName, response.token, {
-    path: "/",
+    ...authCookieOptions,
     maxAge: response.expiresInSeconds,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
   });
 }
 
@@ -51,7 +49,7 @@ export async function loginAction(
     };
   }
 
-  redirect(nextPath(formData));
+  redirect("/workspace");
 }
 
 export async function registerAction(
