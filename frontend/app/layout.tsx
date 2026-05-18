@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppShell } from "@/components/app-shell";
+import { getAuthToken } from "@/lib/server-auth";
 
 export const metadata: Metadata = {
   title: "bob",
@@ -17,15 +18,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialSignedIn = Boolean(await getAuthToken());
+
   return (
     <html lang="en">
       <body className="antialiased">
-        <AppShell>{children}</AppShell>
+        <AppShell initialSignedIn={initialSignedIn}>{children}</AppShell>
       </body>
     </html>
   );

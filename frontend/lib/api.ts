@@ -27,24 +27,14 @@ type ApiFetchOptions = Omit<RequestInit, "headers"> & {
   authToken?: string;
 };
 
-function getBrowserToken() {
-  if (typeof document === "undefined") {
-    return null;
-  }
-
-  return document.cookie
-    .split("; ")
-    .find((cookie) => cookie.startsWith("bob_token="))
-    ?.split("=")[1] ?? null;
-}
-
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
-  if (!apiBaseUrl) {
+  const { authToken, ...fetchOptions } = options;
+  const isBrowserRequest = typeof window !== "undefined" && !authToken;
+
+  if (!apiBaseUrl && !isBrowserRequest) {
     throw new ApiError("Set NEXT_PUBLIC_API_BASE_URL to connect the backend.", 0);
   }
 
-  const { authToken, ...fetchOptions } = options;
-  const token = authToken ?? getBrowserToken();
   const headers: Record<string, string> = {
     Accept: "application/json",
   };
@@ -53,11 +43,12 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     headers[key] = value;
   });
 
-  if (token) {
-    headers.Authorization = `Bearer ${decodeURIComponent(token)}`;
+  if (authToken) {
+    headers.Authorization = `Bearer ${authToken}`;
   }
 
-  const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}${path}`, {
+  const url = isBrowserRequest ? path : `${apiBaseUrl?.replace(/\/$/, "")}${path}`;
+  const response = await fetch(url, {
     ...fetchOptions,
     headers,
     cache: "no-store",

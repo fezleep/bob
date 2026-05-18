@@ -20,6 +20,10 @@ type LeadWorkspaceProps = {
   emptyBody: string;
 };
 
+function normalizeSearchValue(value: string | null | undefined) {
+  return value ?? "";
+}
+
 export function LeadWorkspace({
   leads,
   title,
@@ -144,7 +148,7 @@ export function LeadWorkspace({
             }
             hint={
               hasQuery
-                ? `Search checks name, email, and company across the ${leadFilterMeta[activeFilter].label.toLowerCase()} view.`
+                ? `Search checks name, email, and company across the ${normalizeSearchValue(leadFilterMeta[activeFilter].label).toLowerCase()} view.`
                 : `${leadFilterMeta[activeFilter].label} stays available here whenever that signal appears.`
             }
           />

@@ -14,10 +14,16 @@ const navItems = [
   { href: "/about", label: "About" },
 ];
 
-export function AppShell({ children }: { children: ReactNode }) {
+export function AppShell({
+  children,
+  initialSignedIn = false,
+}: {
+  children: ReactNode;
+  initialSignedIn?: boolean;
+}) {
   const pathname = usePathname();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
+  const [signedIn] = useState(initialSignedIn);
   const activeSection =
     navItems.find((item) =>
       item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
@@ -26,12 +32,8 @@ export function AppShell({ children }: { children: ReactNode }) {
   const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), []);
 
   useEffect(() => {
-    setSignedIn(document.cookie.split("; ").some((cookie) => cookie.startsWith("bob_token=")));
-  }, [pathname]);
-
-  useEffect(() => {
     function openFromKeyboard(event: KeyboardEvent) {
-      const key = event.key.toLowerCase();
+      const key = String(event.key ?? "").toLowerCase();
       const primaryShortcut = key === "k" && (event.metaKey || event.ctrlKey);
       const fallbackShortcut = key === "k" && event.ctrlKey && event.shiftKey;
 
