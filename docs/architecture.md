@@ -2,63 +2,55 @@
 
 bob is a fullstack SaaS/product engineering case built around a separated frontend and backend.
 
-The current system is intentionally simple:
-
 ```text
 Browser
   -> Next.js / React / TypeScript frontend
-  -> Spring Boot REST API
+  -> Spring Boot REST API with JWT authentication
   -> Spring Data JPA
   -> PostgreSQL
 ```
 
-Docker Compose currently provides the local PostgreSQL dependency. The application does not currently use Redis, RabbitMQ, OpenAI API, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, or Kubernetes. Those are future infrastructure options documented in the roadmap.
+Docker Compose currently provides local PostgreSQL. Redis, RabbitMQ, OpenAI API, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes are not implemented in this branch; they remain roadmap candidates.
 
 ## System Shape
 
-bob is organized as:
-
-- `frontend`: Next.js application and operational workspace UI
-- `backend`: Java/Spring Boot API and domain logic
+- `frontend`: Next.js App Router application and operational workspace UI
+- `backend`: Java/Spring Boot API, security, and domain logic
 - `docs`: architecture, roadmap, and engineering documentation
 - `docker-compose.yml`: local PostgreSQL service
 
-The frontend and backend communicate through HTTP APIs. The frontend does not connect directly to the database.
+The frontend communicates with the backend through HTTP APIs. The database is only accessed by the backend.
 
-## Backend Architecture
+## Backend
 
-The backend is a Spring Boot modular monolith.
+The backend is a modular monolith. Current package areas:
 
-Current package structure:
-
-- `com.bob.modules.leads`: lead records, status transitions, notes, activities, controllers, services, repositories, and API DTOs
+- `com.bob.modules.auth`: user registration, login, current-user lookup, BCrypt password hashing, JWT issuing
+- `com.bob.modules.leads`: lead records, status transitions, notes, activities, controllers, services, repositories, and DTOs
 - `com.bob.modules.system`: application status endpoint
-- `com.bob.shared.api`: shared API error response and exception handling
-- `com.bob.config`: application configuration properties
+- `com.bob.shared.api`: consistent API error response and exception handling
+- `com.bob.config`: configuration properties and Spring Security wiring
 
-This structure keeps the application easy to run locally while giving the domain room to grow. The system does not need microservices at this stage. A modular monolith keeps transactions straightforward, avoids premature network boundaries, and lets feature work move through small pull requests.
+Spring Security runs statelessly. `/api/auth/register` and `/api/auth/login` are public, `/api/auth/me` requires a bearer token, operational APIs such as `/api/leads/**` require authentication, and `/actuator/health` remains public for local and CI health checks.
 
-## Lead Module
+## Authentication Flow
 
-The lead module owns the current product workflow:
+1. The user registers or logs in from the frontend.
+2. The frontend sends credentials to the Spring Boot auth endpoint.
+3. The backend validates the request, checks a BCrypt password hash, and returns a signed JWT.
+4. The frontend stores the token in a practical stage-one cookie.
+5. Server-rendered protected pages read the cookie and include `Authorization: Bearer <token>` when calling the backend.
+6. Browser-side API calls also attach the token from the cookie.
 
-- create leads
-- list leads with pagination, sorting, and optional status filtering
-- retrieve lead detail
-- update lead fields
-- change lead status
-- add notes
-- list notes
-- list activity history
-
-Lead activity is stored as application context so the product can show what changed and when. This gives bob the foundation for future contextual intelligence without claiming AI features before they are implemented.
+This is a foundation, not a complete enterprise identity system. Refresh tokens, password reset, email verification, workspace membership, and role-aware authorization beyond `USER` are roadmap work.
 
 ## API Design
 
-The backend exposes REST endpoints under `/api`.
-
 Current API areas:
 
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
 - `/api/leads`
 - `/api/leads/{id}`
 - `/api/leads/{id}/status`
@@ -67,63 +59,36 @@ Current API areas:
 - `/api/status`
 - `/actuator/health`
 
-Request validation uses Spring validation. API errors are normalized through shared exception handling so clients receive consistent response shapes.
+Request validation uses Bean Validation. API errors use a shared response shape with timestamp, status, error, message, and field-level validation details where useful.
 
-## Frontend Architecture
+## Frontend
 
 The frontend uses Next.js App Router, React, TypeScript, and Tailwind CSS.
 
-Current structure:
+- `frontend/app`: routes for home, about, auth, workspace, pipeline, leads, and lead detail
+- `frontend/components`: reusable product components such as app shell, command palette, lead workspace, forms, notes, and pipeline board
+- `frontend/lib`: API client behavior, auth helpers, server auth helpers, lead types, formatting, and filters
 
-- `frontend/app`: route-level screens for the workspace, leads, lead detail, pipeline, about, loading, and error states
-- `frontend/components`: reusable UI and product components
-- `frontend/lib`: API client behavior, lead types, formatting, and filter logic
-
-The frontend is designed around operational UX:
-
-- workspace-first navigation
-- lead list and lead detail views
-- kanban pipeline for status scanning
-- intelligent filters for recent, quiet, and needs-attention signals
-- contextual search across core lead fields
-- progressive disclosure for actions and detail
-
-This keeps the interface calm while still supporting the workflows a small team would expect from a lead workspace.
+Protected pages are `/workspace`, `/pipeline`, `/leads`, and `/leads/[id]`. Public pages are `/`, `/about`, `/login`, and `/register`.
 
 ## Database
 
-PostgreSQL is the current database.
+PostgreSQL is the current source of truth. Flyway owns schema changes.
 
-Flyway owns schema changes. Current migrations cover:
+Current migrations cover:
 
 - application metadata
 - leads
 - lead notes
 - lead activities
+- users
 
-The database is treated as part of the application contract. Schema changes should be explicit, reviewable, and included with the backend feature that requires them.
+Schema changes should stay explicit, reviewable, and tied to the backend behavior that requires them.
 
 ## Local Infrastructure
 
-Local infrastructure is intentionally small:
+- Docker Compose starts PostgreSQL 16.
+- Spring Boot runs locally on port `8080` by default.
+- Next.js runs locally on port `3000` by default.
 
-- Docker Compose starts PostgreSQL 16
-- Spring Boot runs locally on port `8080` by default
-- Next.js runs locally on port `3000` by default
-
-This keeps the project easy for reviewers and contributors to run without hiding the actual frontend/backend/database boundaries.
-
-## Evolution Path
-
-The architecture should evolve from real product pressure.
-
-Expected next steps:
-
-- authentication and workspace ownership
-- stronger authorization rules around leads and workspaces
-- richer lead actions and command palette behavior
-- richer search across notes and activity
-- asynchronous background work if workflows require it
-- observability once deployment exists
-
-Service extraction, queues, distributed tracing, Kubernetes, and managed cloud infrastructure should be introduced only when they solve a concrete scaling, reliability, or operational problem.
+This keeps local review simple while preserving real frontend/backend/database boundaries.

@@ -2,13 +2,16 @@ import { CreateLeadForm } from "@/components/create-lead-form";
 import { LeadWorkspace } from "@/components/lead-workspace";
 import { StatusPill } from "@/components/status-pill";
 import { getAllLeads, statuses } from "@/lib/leads";
+import { requireAuthToken } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function LeadsPage() {
+  const authToken = await requireAuthToken();
   const leads = await getAllLeads({
     sort: "updatedAt",
     direction: "desc",
+    authToken,
   });
   const openLeads = leads.filter((lead) => !["CLOSED", "LOST"].includes(lead.status));
   const quietCopy =

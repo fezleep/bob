@@ -9,6 +9,7 @@ import {
   updateLead,
   type LeadStatus,
 } from "@/lib/leads";
+import { requireAuthToken } from "@/lib/server-auth";
 import type {
   LeadNoteFormState,
   LeadStatusFormState,
@@ -60,12 +61,13 @@ export async function updateLeadAction(
   }
 
   try {
+    const authToken = await requireAuthToken();
     const lead = await updateLead(leadId, {
       name,
       email: email || null,
       company: company || null,
       status,
-    });
+    }, authToken);
 
     revalidatePath(`/leads/${leadId}`);
 
@@ -135,7 +137,8 @@ export async function changeLeadStatusAction(
   }
 
   try {
-    const lead = await changeLeadStatus(leadId, status);
+    const authToken = await requireAuthToken();
+    const lead = await changeLeadStatus(leadId, status, authToken);
 
     revalidatePath(`/leads/${leadId}`);
 
@@ -199,7 +202,8 @@ export async function addLeadNoteAction(
   }
 
   try {
-    await addLeadNote(leadId, content);
+    const authToken = await requireAuthToken();
+    await addLeadNote(leadId, content, authToken);
 
     revalidatePath(`/leads/${leadId}`);
 

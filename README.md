@@ -40,12 +40,14 @@ Current product surface:
 - Lead workspace for listing, creating, and reviewing leads
 - Lead detail pages with notes, activity history, status changes, and lead actions
 - Kanban pipeline grouped by lead status
+- JWT authentication with local register, login, current-user, and logout flow
+- Protected operational workspace, pipeline, leads, and lead detail routes
 - Intelligent filters for all, status-based, recent, quiet, and needs-attention views
 - Contextual search across lead name, email, and company
 - Operational app shell with workspace, leads, pipeline, and about routes
 - Progressive disclosure for detailed information and actions
-- Backend APIs for lead CRUD, status updates, notes, activities, and system status
-- Database migrations for leads, notes, activities, and application metadata
+- Backend APIs for authentication, lead CRUD, status updates, notes, activities, and system status
+- Database migrations for users, leads, notes, activities, and application metadata
 - Local PostgreSQL environment through Docker Compose
 
 Planned product capabilities are listed in the roadmap and are not presented as current implementation.
@@ -55,10 +57,10 @@ Planned product capabilities are listed in the roadmap and are not presented as 
 | Area | Current technology |
 | --- | --- |
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS |
-| Backend | Java 21, Spring Boot 3.3, Spring Web, Spring Data JPA, Bean Validation |
+| Backend | Java 21, Spring Boot 3.3, Spring Web, Spring Security, Spring Data JPA, Bean Validation |
 | Database | PostgreSQL 16, Flyway migrations |
 | Local infrastructure | Docker Compose |
-| Quality checks | Maven tests, Spring Boot tests, ESLint, Next.js build |
+| Quality checks | Maven tests, Spring Boot tests, ESLint, Next.js build, Playwright smoke tests, GitHub Actions |
 
 Future infrastructure such as Redis, RabbitMQ, OpenAI API integration, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes belongs to the roadmap. Those tools are not claimed as part of the current implementation.
 
@@ -79,6 +81,7 @@ The backend is currently a modular monolith. This keeps local development and tr
 Current backend modules include:
 
 - `modules/leads` for the lead workflow, notes, activity history, and status transitions
+- `modules/auth` for users, BCrypt password hashing, JWT issuing, registration, login, and current-user lookup
 - `modules/system` for application status
 - `shared/api` for API error responses and exception handling
 - `config` for application configuration properties
@@ -117,6 +120,8 @@ Current backend responsibilities:
 - list activity history for a lead
 - validation of incoming API requests
 - application status endpoint under `/api/status`
+- authentication endpoints under `/api/auth/register`, `/api/auth/login`, and `/api/auth/me`
+- stateless Spring Security with JWT bearer tokens
 - centralized API error handling
 - JPA persistence backed by PostgreSQL
 - Flyway-managed schema changes
@@ -133,6 +138,7 @@ Flyway migrations define the database contract:
 - leads
 - lead notes
 - lead activities
+- users
 
 The database design is intentionally direct: clear tables, explicit timestamps, status fields, and relationships that support the lead workflow. More advanced read models, analytics, background jobs, and cache layers are future concerns.
 
@@ -173,6 +179,29 @@ Set the frontend API origin:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 ```
 
+Set authentication values for local development:
+
+```bash
+BOB_AUTH_JWT_SECRET=local-development-secret-change-me-please-32
+BOB_AUTH_JWT_EXPIRATION_MINUTES=480
+```
+
+The default JWT secret is only for local demos. Use a strong secret outside local development.
+
+Create the first user locally from:
+
+```text
+http://localhost:3000/register
+```
+
+or through the backend:
+
+```bash
+curl -X POST http://localhost:8080/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Local User","email":"local@example.com","password":"password123"}'
+```
+
 Useful local checks:
 
 ```bash
@@ -191,6 +220,8 @@ Workflow expectations:
 - keep backend, frontend, and documentation changes scoped
 - verify backend behavior with Maven tests
 - verify frontend behavior with lint and build checks
+- verify smoke behavior with Playwright where possible
+- use GitHub Actions for backend and frontend validation on pull requests
 - document architectural decisions when they affect future direction
 - deliver features incrementally instead of introducing unnecessary infrastructure early
 
@@ -200,7 +231,7 @@ This workflow is meant to show engineering maturity: clear boundaries, honest do
 
 Near-term product roadmap:
 
-- authentication and workspace ownership
+- workspace ownership
 - lead ownership and follow-up dates
 - richer lead actions
 - saved views for common operational filters
@@ -208,6 +239,7 @@ Near-term product roadmap:
 - richer contextual search across notes and activity history
 - import flow for lead lists
 - role-aware access rules
+- refresh tokens, password reset, email verification, and invite flow
 
 Future intelligence roadmap:
 
@@ -232,7 +264,7 @@ Recommended captures:
 
 ## Future Infrastructure Roadmap
 
-The current implementation uses Docker Compose for local PostgreSQL. The following infrastructure is future work and should be introduced only when the product needs it:
+The current implementation uses Docker Compose for local PostgreSQL and GitHub Actions for validation. The following infrastructure is future work and should be introduced only when the product needs it:
 
 - Redis for caching, rate limiting, or short-lived workflow state
 - RabbitMQ for asynchronous jobs and event-driven workflows

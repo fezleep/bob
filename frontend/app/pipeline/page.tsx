@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { PipelineBoard } from "@/components/pipeline-board";
 import { getAllLeads, statuses } from "@/lib/leads";
+import { requireAuthToken } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function PipelinePage() {
+  const authToken = await requireAuthToken();
   const leads = await getAllLeads({
     sort: "updatedAt",
     direction: "desc",
+    authToken,
   });
   const openLeads = leads.filter((lead) => !["CLOSED", "LOST"].includes(lead.status));
 
