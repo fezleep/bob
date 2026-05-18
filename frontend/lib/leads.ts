@@ -45,6 +45,7 @@ type GetLeadsOptions = {
   sort?: "createdAt" | "updatedAt" | "name" | "status" | "company";
   direction?: "asc" | "desc";
   status?: LeadStatus;
+  authToken?: string;
 };
 
 export type LeadDetail = Lead & {
@@ -68,8 +69,9 @@ export type UpdateLeadInput = {
 
 export async function getLeads(options: GetLeadsOptions = {}) {
   const params = new URLSearchParams();
+  const { authToken, ...queryOptions } = options;
 
-  Object.entries(options).forEach(([key, value]) => {
+  Object.entries(queryOptions).forEach(([key, value]) => {
     if (value !== undefined) {
       params.set(key, String(value));
     }
@@ -77,7 +79,7 @@ export async function getLeads(options: GetLeadsOptions = {}) {
 
   const query = params.size > 0 ? `?${params.toString()}` : "";
 
-  return apiFetch<LeadListResponse>(`/api/leads${query}`);
+  return apiFetch<LeadListResponse>(`/api/leads${query}`, { authToken });
 }
 
 export async function getAllLeads(options: Omit<GetLeadsOptions, "page" | "size"> = {}) {
@@ -99,9 +101,10 @@ export async function getAllLeads(options: Omit<GetLeadsOptions, "page" | "size"
   ];
 }
 
-export async function createLead(input: CreateLeadInput) {
+export async function createLead(input: CreateLeadInput, authToken?: string) {
   return apiFetch<Lead>("/api/leads", {
     method: "POST",
+    authToken,
     headers: {
       "Content-Type": "application/json",
     },
@@ -109,9 +112,10 @@ export async function createLead(input: CreateLeadInput) {
   });
 }
 
-export async function updateLead(id: string, input: UpdateLeadInput) {
+export async function updateLead(id: string, input: UpdateLeadInput, authToken?: string) {
   return apiFetch<Lead>(`/api/leads/${id}`, {
     method: "PUT",
+    authToken,
     headers: {
       "Content-Type": "application/json",
     },
@@ -119,15 +123,15 @@ export async function updateLead(id: string, input: UpdateLeadInput) {
   });
 }
 
-export async function getLeadById(id: string) {
-  return apiFetch<Lead>(`/api/leads/${id}`);
+export async function getLeadById(id: string, authToken?: string) {
+  return apiFetch<Lead>(`/api/leads/${id}`, { authToken });
 }
 
-export async function getLeadDetail(id: string): Promise<LeadDetail> {
+export async function getLeadDetail(id: string, authToken?: string): Promise<LeadDetail> {
   const [lead, notes, activities] = await Promise.all([
-    getLeadById(id),
-    apiFetch<LeadNote[]>(`/api/leads/${id}/notes`),
-    apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`),
+    getLeadById(id, authToken),
+    apiFetch<LeadNote[]>(`/api/leads/${id}/notes`, { authToken }),
+    apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`, { authToken }),
   ]);
 
   return {
@@ -137,9 +141,10 @@ export async function getLeadDetail(id: string): Promise<LeadDetail> {
   };
 }
 
-export async function changeLeadStatus(id: string, status: LeadStatus) {
+export async function changeLeadStatus(id: string, status: LeadStatus, authToken?: string) {
   return apiFetch<Lead>(`/api/leads/${id}/status`, {
     method: "PATCH",
+    authToken,
     headers: {
       "Content-Type": "application/json",
     },
@@ -147,9 +152,10 @@ export async function changeLeadStatus(id: string, status: LeadStatus) {
   });
 }
 
-export async function addLeadNote(id: string, content: string) {
+export async function addLeadNote(id: string, content: string, authToken?: string) {
   return apiFetch<LeadNote>(`/api/leads/${id}/notes`, {
     method: "POST",
+    authToken,
     headers: {
       "Content-Type": "application/json",
     },
@@ -157,8 +163,8 @@ export async function addLeadNote(id: string, content: string) {
   });
 }
 
-export async function getLeadActivities(id: string) {
-  return apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`);
+export async function getLeadActivities(id: string, authToken?: string) {
+  return apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`, { authToken });
 }
 
 export function formatLeadStatus(status: LeadStatus) {

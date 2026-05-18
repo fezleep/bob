@@ -12,6 +12,7 @@ import {
   getLeadDetail,
   type LeadDetail,
 } from "@/lib/leads";
+import { requireAuthToken } from "@/lib/server-auth";
 
 type LeadDetailPageProps = {
   params: Promise<{
@@ -60,10 +61,11 @@ function getNextBestRead(lead: LeadDetail) {
 
 export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const { id } = await params;
+  const authToken = await requireAuthToken();
   let lead;
 
   try {
-    lead = await getLeadDetail(id);
+    lead = await getLeadDetail(id, authToken);
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) {
       notFound();

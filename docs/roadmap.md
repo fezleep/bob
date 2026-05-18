@@ -1,6 +1,6 @@
 # Roadmap
 
-This roadmap separates current implementation from future product and infrastructure work. The goal is to keep bob credible as a portfolio project and practical as a growing SaaS foundation.
+This roadmap separates current implementation from future product and infrastructure work.
 
 ## Current Foundation
 
@@ -11,17 +11,23 @@ Implemented today:
 - PostgreSQL persistence
 - Docker Compose for local database setup
 - Flyway database migrations
+- Spring Security authentication foundation
+- JWT login/register/current-user flow
+- BCrypt password hashing
+- user table with `USER` role
+- protected operational backend APIs
+- protected frontend workspace, pipeline, leads, and lead detail routes
 - lead CRUD APIs
 - lead status changes
 - lead notes
 - lead activity history
-- system status endpoint
-- workspace, leads, lead detail, and pipeline frontend routes
+- system status and actuator health endpoints
+- workspace, leads, lead detail, pipeline, home, about, login, and register frontend routes
 - intelligent lead filters
 - contextual search across core lead fields
-- reusable frontend components for lead operations
-- backend tests for lead and system behavior
-- frontend lint and build scripts
+- command palette trigger and navigation
+- GitHub Actions CI validation
+- Playwright smoke test foundation
 
 ## Product Roadmap
 
@@ -29,14 +35,25 @@ Implemented today:
 
 Planned:
 
-- workspace ownership model
-- user accounts and authentication
+- workspace or organization ownership model
 - lead ownership
 - follow-up dates
 - richer lead actions
-- better empty states around operational next steps
 - import flow for lead lists
 - saved views for repeated workflows
+- role-aware collaboration rules
+
+### Authentication and Authorization
+
+Planned:
+
+- refresh token strategy
+- password reset
+- email verification
+- invite flow
+- workspace membership
+- admin role
+- authorization rules scoped to workspaces and leads
 
 ### Pipeline
 
@@ -54,7 +71,7 @@ Planned:
 - contextual search across notes and activity history
 - saved filters
 - filter combinations
-- keyboard-friendly command palette for navigation and lead actions
+- keyboard-friendly command palette actions
 - workspace-wide quick open behavior
 
 ### Contextual Intelligence
@@ -71,55 +88,30 @@ OpenAI API integration belongs here as future work. It should be introduced behi
 
 ## Backend Roadmap
 
-Planned:
-
-- Spring Security authentication
-- authorization rules for users, workspaces, and leads
-- stronger domain boundaries as workflows grow
-- pagination and filtering improvements where the UI needs them
+- stronger authorization around users, workspaces, and leads
 - API contract documentation
 - integration tests around persistence and API behavior
 - import processing for bulk lead creation
-
-Potential later additions:
-
-- asynchronous job handling for imports, notifications, and intelligence tasks
-- domain events inside the modular monolith
-- reporting read models if operational queries become heavier
+- background jobs if imports, notifications, or intelligence workflows require them
+- domain events inside the modular monolith if workflow complexity grows
 
 ## Frontend Roadmap
 
-Planned:
-
 - richer command palette behavior
-- lead action menus closer to the user's current context
+- lead action menus closer to the current context
 - improved keyboard flow for lead operations
 - saved workspace views
-- better progressive disclosure for notes, history, and lead intelligence
 - loading and error state refinement
 - screenshot-ready public demo flow
 
 The frontend should remain operational, not decorative. The primary value is helping users scan, decide, and act.
-
-## Database Roadmap
-
-Planned:
-
-- users
-- workspaces or organizations
-- lead ownership fields
-- follow-up fields
-- saved views
-- import tracking
-- audit-friendly activity records
-
-Database changes should continue to use Flyway migrations and should ship with the backend behavior that requires them.
 
 ## Infrastructure Roadmap
 
 Current infrastructure:
 
 - Docker Compose for local PostgreSQL
+- GitHub Actions for validation
 
 Future infrastructure options:
 
@@ -133,24 +125,3 @@ Future infrastructure options:
 - Kubernetes if orchestration needs justify the operational cost
 
 These are not current implementation details. They are roadmap candidates for a later production stage.
-
-## Engineering Workflow Roadmap
-
-Planned:
-
-- continue using feature branches for isolated work
-- keep pull requests small and reviewable
-- expand backend test coverage around higher-risk workflows
-- add frontend tests when interaction complexity increases
-- keep documentation updated with architecture and product changes
-- separate product work from infrastructure work unless a feature requires both
-
-## Success Criteria
-
-bob should continue to be:
-
-- understandable to a recruiter in less than 60 seconds
-- credible to a tech lead reviewing architecture and delivery choices
-- easy to run locally
-- honest about implemented versus planned capabilities
-- focused on lead operations, workflow clarity, and contextual intelligence

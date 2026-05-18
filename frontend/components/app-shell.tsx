@@ -17,12 +17,17 @@ const navItems = [
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
   const activeSection =
     navItems.find((item) =>
       item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
     )?.label ?? "bob";
   const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), []);
   const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), []);
+
+  useEffect(() => {
+    setSignedIn(document.cookie.split("; ").some((cookie) => cookie.startsWith("bob_token=")));
+  }, [pathname]);
 
   useEffect(() => {
     function openFromKeyboard(event: KeyboardEvent) {
@@ -90,6 +95,32 @@ export function AppShell({ children }: { children: ReactNode }) {
           })}
         </nav>
 
+        <div className="relative mt-5 border-t border-border/45 pt-4">
+          {signedIn ? (
+            <Link
+              href="/logout"
+              className="focus-ring flex h-9 items-center rounded-md px-2 text-sm text-muted transition hover:bg-elevated/45 hover:text-ink"
+            >
+              Logout
+            </Link>
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <Link
+                href="/login"
+                className="focus-ring flex h-9 items-center justify-center rounded-md border border-border/65 text-sm text-muted transition hover:border-accent/34 hover:text-ink"
+              >
+                Login
+              </Link>
+              <Link
+                href="/register"
+                className="focus-ring flex h-9 items-center justify-center rounded-md border border-accent/24 bg-accent/[0.08] text-sm text-[rgb(var(--champagne))] transition hover:border-accent/38 hover:text-ink"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+        </div>
+
         <div className="absolute inset-x-4 bottom-4 rounded-lg border border-accent/16 bg-panel/76 p-3 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset,0_20px_50px_rgb(0_0_0/0.24)] backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <span className="size-1.5 rounded-full bg-accent/80 shadow-[0_0_18px_rgb(var(--accent)/0.38)]" />
@@ -140,6 +171,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                 K
               </button>
               <div className="size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]" />
+              {signedIn ? (
+                <Link
+                  href="/logout"
+                  className="focus-ring hidden h-8 items-center rounded-md border border-border/65 px-3 text-xs font-medium text-faint transition hover:border-accent/34 hover:text-ink sm:flex"
+                >
+                  Logout
+                </Link>
+              ) : null}
             </div>
           </div>
           <nav className="flex gap-1 overflow-x-auto border-t border-border/45 px-4 py-2 sm:px-6 lg:hidden">

@@ -29,3 +29,6 @@ bob:
   app:
     name: bob
     version: ${BOB_APP_VERSION:0.1.0}
+  auth:
+    jwt-secret: ${BOB_AUTH_JWT_SECRET:local-development-secret-change-me-please-32}
+    jwt-expiration-minutes: ${BOB_AUTH_JWT_EXPIRATION_MINUTES:480}

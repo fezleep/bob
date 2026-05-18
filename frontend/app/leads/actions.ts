@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
 import type { CreateLeadFormState } from "@/app/leads/form-state";
 import { createLead, statuses, type LeadStatus } from "@/lib/leads";
+import { requireAuthToken } from "@/lib/server-auth";
 
 const fieldNames = new Set(["name", "email", "company", "status"]);
 
@@ -41,12 +42,13 @@ export async function createLeadAction(
   let leadId: string;
 
   try {
+    const authToken = await requireAuthToken();
     const lead = await createLead({
       name,
       email: email || null,
       company: company || null,
       status,
-    });
+    }, authToken);
     leadId = lead.id;
   } catch (error) {
     if (error instanceof ApiError) {

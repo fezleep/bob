@@ -1,144 +1,77 @@
 # Engineering Decisions
 
-This document records the product and engineering choices behind bob. It is meant to make the repository easier to evaluate as a fullstack SaaS/product engineering case.
+This document records product and engineering choices behind bob.
 
-## 1. Build a Real Product Surface, Not Only Backend Endpoints
+## 1. Build a Product Surface, Not Only Endpoints
 
-bob is documented and structured as a product workspace, not just an API sample.
+bob includes frontend, backend, database, local infrastructure, and documentation in one repository. The product starts with operational workflows for leads, pipeline, notes, activity, filters, search, and command palette navigation.
 
-Decision:
-
-- include frontend, backend, database, local infrastructure, and product documentation in one repository
-- make the first screen an operational workspace instead of a marketing page
-- keep the experience centered on leads, workflows, and contextual intelligence
-
-Reasoning:
-
-- recruiters can understand the product quickly
-- tech leads can evaluate implementation boundaries
-- the repository shows product judgment as well as coding ability
+Reason: reviewers can evaluate product judgment, backend boundaries, frontend execution, and delivery discipline together.
 
 ## 2. Keep Frontend and Backend Separated
 
-Decision:
+The Next.js frontend talks to the Spring Boot backend through HTTP APIs. PostgreSQL access stays behind the backend.
 
-- use a Next.js/TypeScript frontend
-- use a Java/Spring Boot backend
-- communicate through HTTP APIs
-- keep PostgreSQL access behind the backend
-
-Reasoning:
-
-- the separation mirrors a common SaaS architecture
-- backend ownership, validation, persistence, and API contracts remain clear
-- the frontend can focus on operational UX without taking database responsibility
+Reason: this mirrors a common SaaS architecture and keeps validation, persistence, and API contracts owned by the backend.
 
 ## 3. Start with a Modular Monolith
 
-Decision:
+The backend is one Spring Boot application organized by modules and shared concerns.
 
-- keep the backend as one Spring Boot application
-- organize code by modules and shared concerns
-- avoid microservices until the product has real distribution pressure
-
-Reasoning:
-
-- local development stays simple
-- transactions remain straightforward
-- feature branches and pull requests stay smaller
-- boundaries can mature before becoming network boundaries
+Reason: bob does not need microservices at this stage. A modular monolith keeps local development simple, transactions straightforward, and feature branches reviewable.
 
 ## 4. Use PostgreSQL and Flyway from the Start
 
-Decision:
+PostgreSQL is the source of truth and Flyway manages schema evolution.
 
-- use PostgreSQL as the current source of truth
-- manage schema changes through Flyway migrations
+Reason: the database is part of the application contract. Schema changes should be explicit and reviewable.
 
-Reasoning:
+## 5. Add Authentication as SaaS Foundation, Not Stack Bingo
 
-- the database is part of the application contract
-- schema changes become explicit and reviewable
-- the project avoids hidden setup or throwaway in-memory assumptions
+This branch adds Spring Security, BCrypt password hashing, users, a `USER` role, JWT login/register/current-user endpoints, protected operational APIs, protected frontend routes, and logout.
 
-## 5. Treat Operational UX as a Core Feature
+Reason: a SaaS-style operational workspace should not expose operational data by default. The implementation stays intentionally small: no refresh tokens, no multi-tenant workspace model, no password reset, and no external identity provider yet.
 
-Decision:
+## 6. Treat Operational UX as a Core Feature
 
-- design around workspace, lead list, detail view, pipeline, notes, activity, and lead actions
-- include intelligent filters and contextual search
-- use progressive disclosure so the interface stays calm
+The UI remains calm, warm, and product-oriented. Authentication was added without changing the lead list, pipeline, lead detail actions, filters, drawers, or command palette interaction model.
 
-Reasoning:
+Reason: technical hardening should support the product experience instead of overpowering it.
 
-- lead work is repetitive and benefits from clarity
-- users need to scan state quickly before acting
-- a calm interface supports focused operational workflows
+## 7. Keep AI as Roadmap Until Workflow-Backed
 
-## 6. Keep AI as Roadmap Until It Is Workflow-Backed
+OpenAI API integration is documented as future work only.
 
-Decision:
+Reason: bob should remain useful without AI. Future intelligence should support concrete workflows such as summaries, stale-lead detection, and next-step suggestions.
 
-- describe OpenAI API integration as future work
-- avoid presenting AI features as implemented before they exist
-- attach future intelligence to concrete jobs such as summaries, stale lead detection, and next-step suggestions
+## 8. Avoid Premature Infrastructure
 
-Reasoning:
+Current infrastructure is Docker Compose for PostgreSQL plus GitHub Actions validation. Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes remain future work.
 
-- the product should remain useful without AI
-- AI should support workflow context instead of becoming a decorative assistant surface
-- honest documentation is more valuable than inflated claims
-
-## 7. Avoid Premature Infrastructure
-
-Decision:
-
-- use Docker Compose for local PostgreSQL today
-- document Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes as future infrastructure
-
-Reasoning:
-
-- the current product does not need distributed infrastructure to prove its value
-- unnecessary services would make local review harder
-- the roadmap stays credible by separating current implementation from future platform work
-
-## 8. Deliver Incrementally
-
-Decision:
-
-- use feature branches and pull requests for product slices
-- keep changes scoped by frontend, backend, database, or documentation concern
-- prefer incremental delivery over large speculative rewrites
-
-Reasoning:
-
-- the project remains reviewable
-- implementation risk is easier to manage
-- engineering maturity is visible through small, coherent changes
+Reason: unnecessary services would make local review harder and weaken the credibility of the implementation.
 
 ## Current Quality Signals
-
-Current implementation includes:
 
 - Spring Boot tests for lead and system behavior
 - request validation on backend inputs
 - centralized API error handling
+- Spring Security/JWT authentication foundation
+- BCrypt password hashing
 - Flyway migrations for schema evolution
 - typed frontend data structures and API access
+- auth-aware frontend API handling
 - frontend lint and build scripts
-- documented architecture and roadmap
+- GitHub Actions CI for backend and frontend
+- Playwright smoke tests for public pages, auth pages, protected redirects, and command palette trigger
 
-## Deliberate Non-Goals for the Current Stage
+## Current Non-Goals
 
-Not current implementation:
-
-- authentication and authorization
+- refresh tokens
+- password reset or email verification
 - multi-tenant workspace ownership
-- production deployment
+- production deployment automation
 - Redis
 - RabbitMQ
 - OpenAI API integration
 - Prometheus, Grafana, or OpenTelemetry
 - AWS, Terraform, or Kubernetes
-
-These are valid future directions, but they should be introduced when the product workflow and deployment needs justify them.

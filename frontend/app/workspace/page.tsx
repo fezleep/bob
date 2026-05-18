@@ -12,6 +12,7 @@ import {
   type LeadActivity,
   type LeadStatus,
 } from "@/lib/leads";
+import { requireAuthToken } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -42,11 +43,11 @@ function daysSince(value: string) {
   return Math.max(0, Math.floor(elapsed / 86_400_000));
 }
 
-async function getRecentActivities(leads: Lead[]) {
+async function getRecentActivities(leads: Lead[], authToken: string) {
   const recentLeads = sortByUpdatedAt(leads).slice(0, 6);
   const activityResults = await Promise.allSettled(
     recentLeads.map(async (lead) => {
-      const activities = await getLeadActivities(lead.id);
+      const activities = await getLeadActivities(lead.id, authToken);
 
       return activities.map((activity) => ({
         ...activity,
@@ -63,11 +64,13 @@ async function getRecentActivities(leads: Lead[]) {
 }
 
 export default async function WorkspacePage() {
+  const authToken = await requireAuthToken();
   const leads = await getAllLeads({
     sort: "updatedAt",
     direction: "desc",
+    authToken,
   });
-  const recentActivities = await getRecentActivities(leads);
+  const recentActivities = await getRecentActivities(leads, authToken);
   const activeLeads = leads.filter((lead) => activeStatuses.includes(lead.status));
   const attentionLeads = leads.filter((lead) => attentionStatuses.includes(lead.status));
   const qualifiedLeads = leads.filter((lead) => lead.status === "QUALIFIED");

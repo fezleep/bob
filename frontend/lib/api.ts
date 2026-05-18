@@ -24,19 +24,42 @@ export class ApiError extends Error {
 
 type ApiFetchOptions = Omit<RequestInit, "headers"> & {
   headers?: HeadersInit;
+  authToken?: string;
 };
+
+function getBrowserToken() {
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return document.cookie
+    .split("; ")
+    .find((cookie) => cookie.startsWith("bob_token="))
+    ?.split("=")[1] ?? null;
+}
 
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   if (!apiBaseUrl) {
     throw new ApiError("Set NEXT_PUBLIC_API_BASE_URL to connect the backend.", 0);
   }
 
+  const { authToken, ...fetchOptions } = options;
+  const token = authToken ?? getBrowserToken();
+  const headers: Record<string, string> = {
+    Accept: "application/json",
+  };
+
+  new Headers(fetchOptions.headers).forEach((value, key) => {
+    headers[key] = value;
+  });
+
+  if (token) {
+    headers.Authorization = `Bearer ${decodeURIComponent(token)}`;
+  }
+
   const response = await fetch(`${apiBaseUrl.replace(/\/$/, "")}${path}`, {
-    ...options,
-    headers: {
-      Accept: "application/json",
-      ...options.headers,
-    },
+    ...fetchOptions,
+    headers,
     cache: "no-store",
   });
 

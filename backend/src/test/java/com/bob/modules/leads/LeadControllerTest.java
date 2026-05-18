@@ -1,10 +1,12 @@
 package com.bob.modules.leads;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.bob.modules.auth.JwtService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -25,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(LeadController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class LeadControllerTest {
 
     @Autowired
@@ -35,6 +38,9 @@ class LeadControllerTest {
 
     @MockBean
     private LeadService leadService;
+
+    @MockBean
+    private JwtService jwtService;
 
     @Test
     void createsLead() throws Exception {

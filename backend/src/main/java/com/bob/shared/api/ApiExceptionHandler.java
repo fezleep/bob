@@ -1,6 +1,8 @@
 package com.bob.shared.api;
 
 import com.bob.modules.leads.LeadNotFoundException;
+import com.bob.modules.auth.AuthException;
+import com.bob.modules.auth.UserAlreadyExistsException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -46,6 +48,33 @@ class ApiExceptionHandler {
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
                 exception.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(AuthException.class)
+    ResponseEntity<ApiErrorResponse> handleUnauthorized(AuthException exception) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiErrorResponse.of(
+                HttpStatus.UNAUTHORIZED.value(),
+                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                exception.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    ResponseEntity<ApiErrorResponse> handleConflict(UserAlreadyExistsException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiErrorResponse.of(
+                HttpStatus.CONFLICT.value(),
+                HttpStatus.CONFLICT.getReasonPhrase(),
+                exception.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(Exception.class)
+    ResponseEntity<ApiErrorResponse> handleUnexpected(Exception exception) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ApiErrorResponse.of(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
+                "An unexpected error occurred."
         ));
     }
 }
