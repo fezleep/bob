@@ -3,6 +3,8 @@ import "./globals.css";
 import { AppShell } from "@/components/app-shell";
 import { getAuthToken } from "@/lib/server-auth";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "bob",
   description: "quiet software for modern teams.",
