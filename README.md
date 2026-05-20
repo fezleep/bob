@@ -4,145 +4,129 @@
   <img src="frontend/public/branding/bob-logo.png" alt="bob logo" width="72" />
 </p>
 
-bob is a calm operational workspace for leads, workflows, and contextual intelligence.
+bob is a calm fullstack workspace for lead management, business workflows, and contextual intelligence.
 
-It is built as a fullstack SaaS/product engineering case: a Java/Spring Boot backend, PostgreSQL persistence, Docker-based local infrastructure, and a Next.js/TypeScript frontend focused on operational UX.
+It is built like a real SaaS product: separated frontend and backend, authentication, protected operational routes, PostgreSQL persistence, CI, smoke tests, documentation, and a UI that tries to make daily lead work feel clear instead of noisy.
 
-## Public Links
+Portuguese version: [README-pt-BR.md](README-pt-BR.md)
 
-- GitHub repository: https://github.com/fezleep/bob
-- Live demo: not published yet
+## what it is
 
-## What Is bob
+bob is an operational workspace for people who need to track leads without fighting a heavy CRM.
 
-bob is a small CRM-like workspace for managing leads through a clear operating rhythm.
+The product brings lead records, filters, contextual search, a kanban pipeline, lead details, notes, activity history, quick actions, and a command palette into one focused interface. It is not trying to be every sales tool at once. The idea is simpler: show what is happening, what needs attention, and where the next action should happen.
 
-The product brings lead records, status changes, notes, recent activity, filters, contextual search, and a kanban-style pipeline into one focused interface. The goal is not to replace every enterprise CRM feature. The goal is to give small teams a quiet place to understand what is happening, what needs attention, and what action should happen next.
+For recruiters, bob is a portfolio project with real product thinking. For tech leads, it is a fullstack codebase with clear boundaries, pragmatic architecture, and room to grow without pretending that future infrastructure already exists.
 
-For technical reviewers, bob demonstrates a practical fullstack product foundation with a separated frontend and backend, explicit database migrations, typed UI data access, and documentation that explains both product thinking and engineering decisions.
+## why it exists
 
-## Why It Exists
+Most operational tools become complex before the workflow is even clear.
 
-Many sales and operations tools become heavy before a team has enough process to justify the weight. bob starts from the opposite direction:
+bob starts from the workflow:
 
-- a clear workspace for day-to-day lead work
-- a kanban pipeline for scanning operational state
-- lead intelligence through status, recency, attention, and quiet-lead signals
-- progressive disclosure so detail appears when it is useful
-- a codebase that can grow incrementally through feature branches and pull requests
+- leads should be easy to scan
+- status should be visible without opening every record
+- details should appear when they help, not before
+- search and filters should support the way people actually work
+- the codebase should stay understandable as features are added
 
-bob also exists as a public portfolio project. It is intended to be understandable in less than 60 seconds by a recruiter while still giving a tech lead enough detail to evaluate architecture, delivery discipline, and implementation maturity.
+This project is also a public record of how I build: product first, architecture with purpose, small decisions documented, and a roadmap that separates what is implemented from what is still planned.
 
-## Main Features
+## product preview / screenshots
 
-Current product surface:
+Screenshots were captured from local development. Production validation is still pending because the Railway environment had external instability during this pass.
 
-- Lead workspace for listing, creating, and reviewing leads
-- Lead detail pages with notes, activity history, status changes, and lead actions
-- Kanban pipeline grouped by lead status
-- JWT authentication with local register, login, current-user, and logout flow
-- Protected operational workspace, pipeline, leads, and lead detail routes
-- Intelligent filters for all, status-based, recent, quiet, and needs-attention views
-- Contextual search across lead name, email, and company
-- Operational app shell with workspace, leads, pipeline, and about routes
-- Progressive disclosure for detailed information and actions
-- Backend APIs for authentication, lead CRUD, status updates, notes, activities, and system status
-- Database migrations for users, leads, notes, activities, and application metadata
-- Local PostgreSQL environment through Docker Compose
+| Home | Workspace |
+| --- | --- |
+| ![bob home screen](docs/assets/screenshots/home.png) | ![bob workspace screen](docs/assets/screenshots/workspace.png) |
 
-Planned product capabilities are listed in the roadmap and are not presented as current implementation.
+| Pipeline | Leads |
+| --- | --- |
+| ![bob pipeline board](docs/assets/screenshots/pipeline.png) | ![bob leads screen](docs/assets/screenshots/leads.png) |
 
-## Tech Stack
+| Lead preview | Command palette |
+| --- | --- |
+| ![bob lead preview drawer](docs/assets/screenshots/lead-preview.png) | ![bob command palette](docs/assets/screenshots/command-palette.png) |
+
+| Login | About |
+| --- | --- |
+| ![bob login screen](docs/assets/screenshots/login.png) | ![bob about screen](docs/assets/screenshots/about.png) |
+
+## main features
+
+Implemented today:
+
+- lead management with create, list, detail, update, and status change flows
+- kanban pipeline grouped by lead status
+- lead detail actions, notes, and activity history
+- lead intelligence signals such as recent, quiet, and needs-attention views
+- intelligent filters and contextual search across lead data
+- command palette for quick navigation and product actions
+- lateral drawer for lead preview and progressive disclosure
+- login, register, current-user, and logout flow
+- Spring Security with JWT authentication
+- protected operational routes in the frontend
+- protected backend APIs for operational data
+- PostgreSQL persistence with Flyway migrations
+- Docker Compose local database
+- GitHub Actions CI
+- Playwright smoke tests
+- documentation for architecture, roadmap, product direction, brand, and engineering decisions
+
+## tech stack
 
 | Area | Current technology |
 | --- | --- |
 | Frontend | Next.js 15, React 19, TypeScript, Tailwind CSS |
 | Backend | Java 21, Spring Boot 3.3, Spring Web, Spring Security, Spring Data JPA, Bean Validation |
-| Database | PostgreSQL 16, Flyway migrations |
+| Database | PostgreSQL 16, Flyway |
 | Local infrastructure | Docker Compose |
-| Quality checks | Maven tests, Spring Boot tests, ESLint, Next.js build, Playwright smoke tests, GitHub Actions |
+| Quality | Maven tests, Spring Boot tests, ESLint, Next.js build, Playwright smoke tests, GitHub Actions |
 
-Future infrastructure such as Redis, RabbitMQ, OpenAI API integration, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes belongs to the roadmap. Those tools are not claimed as part of the current implementation.
+Redis, RabbitMQ, OpenAI API, Prometheus, Grafana, OpenTelemetry, AWS RDS, AWS ECS/EKS, Terraform, and Kubernetes are roadmap items. They are not part of the current implementation.
 
-## Architecture Overview
+## architecture
 
 bob uses a separated frontend/backend architecture:
 
 ```text
 Next.js frontend
-  -> typed API access through frontend/lib
+  -> typed API access in frontend/lib
   -> Spring Boot REST API
   -> Spring Data JPA
   -> PostgreSQL
 ```
 
-The backend is currently a modular monolith. This keeps local development and transactional behavior simple while still allowing the codebase to develop clear internal module boundaries.
+The backend is a modular monolith. That is intentional. For this stage, a single deployable backend keeps development, transactions, and local setup simple while still allowing the code to grow around clear internal modules.
 
-Current backend modules include:
+Current backend areas:
 
-- `modules/leads` for the lead workflow, notes, activity history, and status transitions
-- `modules/auth` for users, BCrypt password hashing, JWT issuing, registration, login, and current-user lookup
-- `modules/system` for application status
-- `shared/api` for API error responses and exception handling
-- `config` for application configuration properties
+- `modules/auth`: registration, login, current-user lookup, BCrypt password hashing, JWT issuing
+- `modules/leads`: lead workflow, notes, activity history, and status transitions
+- `modules/system`: application status
+- `shared/api`: API errors and exception handling
+- `config`: security and application configuration
 
-The frontend is organized around Next.js App Router routes, reusable components, and a small data access layer. The product experience emphasizes operational UX: fast scanning, clear status, low visual noise, and actions close to the lead context.
+The frontend uses the Next.js App Router, reusable product components, and a small API layer. The UI is built around operational UX: fast scanning, low visual noise, clear status, and actions close to the lead context.
 
 More detail: [docs/architecture.md](docs/architecture.md)
 
-## Frontend Architecture
+## engineering decisions
 
-The frontend is built with Next.js, React, TypeScript, and Tailwind CSS.
+Some choices in bob are deliberately boring, because boring is often what lets a product move:
 
-Current structure:
+- The backend starts as a modular monolith instead of premature microservices.
+- PostgreSQL is the source of truth.
+- Flyway owns schema changes.
+- JWT auth protects operational routes without introducing session infrastructure yet.
+- The frontend talks to the backend through API helpers, not direct database access.
+- The UI uses progressive disclosure so the workspace does not become a wall of controls.
+- CI checks backend tests, frontend lint/build, and Playwright smoke coverage.
+- Future infrastructure is documented, but not added before the product needs it.
 
-- `frontend/app` contains route-level screens such as workspace, leads, lead detail, and pipeline
-- `frontend/components` contains reusable product components such as the lead workspace, lead list, notes section, activity timeline, status pills, and pipeline board
-- `frontend/lib` contains API access, lead types, formatting helpers, and lead filter logic
+More detail: [docs/engineering-decisions.md](docs/engineering-decisions.md)
 
-Design principles:
-
-- operational screens first, not a marketing landing page
-- progressive disclosure for actions and detail
-- intelligent filters and search close to the workspace
-- reusable components with clear props
-- frontend/backend separation through API calls instead of direct database access
-
-## Backend Architecture
-
-The backend is a Spring Boot application using Java 21.
-
-Current backend responsibilities:
-
-- REST endpoints under `/api/leads`
-- create, list, retrieve, update, and change lead status
-- create and list notes for a lead
-- list activity history for a lead
-- validation of incoming API requests
-- application status endpoint under `/api/status`
-- authentication endpoints under `/api/auth/register`, `/api/auth/login`, and `/api/auth/me`
-- stateless Spring Security with JWT bearer tokens
-- centralized API error handling
-- JPA persistence backed by PostgreSQL
-- Flyway-managed schema changes
-
-The backend currently favors a pragmatic modular monolith. The lead module owns the core workflow. Shared API concerns are separated so the code can grow without spreading error-response behavior across controllers.
-
-## Database
-
-PostgreSQL is the source of truth for bob's current application state.
-
-Flyway migrations define the database contract:
-
-- application metadata
-- leads
-- lead notes
-- lead activities
-- users
-
-The database design is intentionally direct: clear tables, explicit timestamps, status fields, and relationships that support the lead workflow. More advanced read models, analytics, background jobs, and cache layers are future concerns.
-
-## Docker / Local Setup
+## local setup
 
 Prerequisites:
 
@@ -179,22 +163,42 @@ Set the frontend API origin:
 NEXT_PUBLIC_API_BASE_URL=http://localhost:8080
 ```
 
-Set authentication values for local development:
+Useful backend checks:
+
+```bash
+curl http://localhost:8080/actuator/health
+curl http://localhost:8080/api/status
+```
+
+## authentication
+
+bob has local authentication implemented.
+
+Current auth flow:
+
+- users can register
+- users can log in
+- the backend issues a JWT
+- protected frontend routes check authentication
+- protected backend APIs require a bearer token
+- users can log out from the frontend
+
+Local auth values:
 
 ```bash
 BOB_AUTH_JWT_SECRET=local-development-secret-change-me-please-32
 BOB_AUTH_JWT_EXPIRATION_MINUTES=480
 ```
 
-The default JWT secret is only for local demos. Use a strong secret outside local development.
+The default JWT secret is only for local development. Use a strong secret outside local demos.
 
-Create the first user locally from:
+Create the first local user in the browser:
 
 ```text
 http://localhost:3000/register
 ```
 
-or through the backend:
+Or call the backend directly:
 
 ```bash
 curl -X POST http://localhost:8080/api/auth/register \
@@ -202,34 +206,29 @@ curl -X POST http://localhost:8080/api/auth/register \
   -d '{"name":"Local User","email":"local@example.com","password":"password123"}'
 ```
 
-Useful local checks:
+## tests and ci
+
+Backend:
 
 ```bash
-curl http://localhost:8080/actuator/health
-curl http://localhost:8080/api/status
+cd backend
+mvn test
 ```
 
-## Engineering Workflow
+Frontend:
 
-bob is maintained as an incremental product build rather than a one-off demo.
+```bash
+cd frontend
+npm run lint
+npm run build
+npm run test:e2e
+```
 
-Workflow expectations:
+GitHub Actions runs backend and frontend validation on pull requests. Playwright smoke tests cover the first browser-level checks for public pages, auth pages, protected redirects, and command palette behavior.
 
-- use feature branches for isolated work
-- open pull requests for reviewable changes
-- keep backend, frontend, and documentation changes scoped
-- verify backend behavior with Maven tests
-- verify frontend behavior with lint and build checks
-- verify smoke behavior with Playwright where possible
-- use GitHub Actions for backend and frontend validation on pull requests
-- document architectural decisions when they affect future direction
-- deliver features incrementally instead of introducing unnecessary infrastructure early
+## roadmap
 
-This workflow is meant to show engineering maturity: clear boundaries, honest documentation, small reviewable changes, and a roadmap that distinguishes current implementation from future ambition.
-
-## Roadmap
-
-Near-term product roadmap:
+Near-term product work:
 
 - workspace ownership
 - lead ownership and follow-up dates
@@ -241,7 +240,7 @@ Near-term product roadmap:
 - role-aware access rules
 - refresh tokens, password reset, email verification, and invite flow
 
-Future intelligence roadmap:
+Future intelligence work:
 
 - lead summaries from notes and activity
 - stale lead detection
@@ -249,43 +248,37 @@ Future intelligence roadmap:
 - short follow-up draft support
 - OpenAI API integration behind explicit workflow actions
 
+Future infrastructure, only when justified:
+
+- Redis
+- RabbitMQ
+- Prometheus and Grafana
+- OpenTelemetry
+- AWS RDS
+- AWS ECS/EKS
+- Terraform
+- Kubernetes
+
 More detail: [docs/roadmap.md](docs/roadmap.md)
 
-## Screenshots
+## why this project matters
 
-Screenshots are intentionally kept as placeholders until the public demo flow is stable.
+bob matters because it is not just a CRUD with a nicer coat of paint.
 
-Recommended captures:
+The project connects product decisions, operational UX, backend architecture, authentication, testing, documentation, and roadmap discipline in one place. It shows how a SaaS-style product can start small and still be built with the habits that make larger systems easier to reason about later.
 
-- Workspace overview: `docs/screenshots/workspace.png`
-- Lead list with filters and contextual search: `docs/screenshots/leads.png`
-- Lead detail with notes, activity, and lead actions: `docs/screenshots/lead-detail.png`
-- Kanban pipeline: `docs/screenshots/pipeline.png`
+The current version is still evolving, but the direction is clear: a calm workspace for lead operations, built with enough technical structure to keep improving without collapsing under its own complexity.
 
-## Future Infrastructure Roadmap
-
-The current implementation uses Docker Compose for local PostgreSQL and GitHub Actions for validation. The following infrastructure is future work and should be introduced only when the product needs it:
-
-- Redis for caching, rate limiting, or short-lived workflow state
-- RabbitMQ for asynchronous jobs and event-driven workflows
-- OpenAI API for contextual intelligence features
-- Prometheus and Grafana for metrics and dashboards
-- OpenTelemetry for traces and structured observability
-- AWS for production hosting
-- Terraform for infrastructure as code
-- Kubernetes for orchestration if deployment complexity justifies it
-
-## Author
+## author
 
 Built by Felipe Virginio.
 
 Product engineer and backend-focused fullstack builder.
 
-## Documentation
+More docs:
 
 - [Architecture](docs/architecture.md)
 - [Engineering decisions](docs/engineering-decisions.md)
-- [Roadmap](docs/roadmap.md)
 - [Product direction](docs/product.md)
+- [Roadmap](docs/roadmap.md)
 - [Brand notes](docs/brand.md)
-- [Portuguese README](README.pt-BR.md)
