@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/api";
@@ -19,6 +20,7 @@ async function setAuthCookie(response: AuthResponse) {
     ...authCookieOptions,
     maxAge: response.expiresInSeconds,
   });
+  revalidatePath("/", "layout");
 }
 
 function nextPath(formData: FormData) {

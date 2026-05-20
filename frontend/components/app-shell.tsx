@@ -23,13 +23,40 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-  const [signedIn] = useState(initialSignedIn);
+  const [signedIn, setSignedIn] = useState(initialSignedIn);
   const activeSection =
     navItems.find((item) =>
       item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
     )?.label ?? "bob";
   const openCommandPalette = useCallback(() => setCommandPaletteOpen(true), []);
   const closeCommandPalette = useCallback(() => setCommandPaletteOpen(false), []);
+
+  useEffect(() => {
+    setSignedIn(initialSignedIn);
+  }, [initialSignedIn]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    async function refreshAuthState() {
+      try {
+        const response = await fetch("/api/auth/me", {
+          cache: "no-store",
+          signal: controller.signal,
+        });
+
+        setSignedIn(response.ok);
+      } catch {
+        if (!controller.signal.aborted) {
+          setSignedIn(false);
+        }
+      }
+    }
+
+    void refreshAuthState();
+
+    return () => controller.abort();
+  }, [pathname]);
 
   useEffect(() => {
     function openFromKeyboard(event: KeyboardEvent) {
@@ -155,13 +182,16 @@ export function AppShell({
               <button
                 type="button"
                 onClick={openCommandPalette}
-                className="focus-ring hidden h-8 w-64 items-center justify-between rounded-md border border-border/65 bg-panel/88 px-2.5 text-sm text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset] transition duration-200 hover:border-accent/34 hover:bg-elevated/64 hover:text-ink sm:flex"
+                className="focus-ring hidden h-8 w-72 items-center justify-between gap-3 rounded-md border border-border/65 bg-panel/88 px-2.5 text-sm text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset] transition duration-200 hover:border-accent/34 hover:bg-elevated/64 hover:text-ink sm:flex"
                 aria-label="Open command palette"
               >
-                <span>Search Bob</span>
-                <span className="flex items-center gap-1 text-[0.66rem] font-medium uppercase tracking-[0.1em] text-faint">
-                  <kbd className="rounded border border-border/70 bg-black/28 px-1.5 py-0.5">Ctrl/Cmd K</kbd>
-                  <kbd className="rounded border border-border/70 bg-black/28 px-1.5 py-0.5">Ctrl+Shift+K</kbd>
+                <span className="shrink-0">Search Bob</span>
+                <span className="flex min-w-0 shrink-0 items-center gap-1 text-[0.62rem] font-medium uppercase leading-none tracking-[0.08em] text-faint">
+                  <kbd className="flex h-5 items-center rounded border border-border/70 bg-black/28 px-1.5">Ctrl/Cmd</kbd>
+                  <kbd className="flex h-5 min-w-5 items-center justify-center rounded border border-border/70 bg-black/28 px-1">K</kbd>
+                  <kbd className="hidden h-5 items-center rounded border border-border/70 bg-black/28 px-1.5 lg:flex">
+                    Ctrl+Shift+K
+                  </kbd>
                 </span>
               </button>
               <button
@@ -170,7 +200,9 @@ export function AppShell({
                 className="focus-ring flex size-8 items-center justify-center rounded-md border border-border/65 bg-panel/88 text-sm font-semibold text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset] transition duration-200 hover:border-accent/34 hover:bg-elevated/64 hover:text-ink sm:hidden"
                 aria-label="Open command palette"
               >
-                K
+                <kbd className="flex size-5 items-center justify-center rounded border border-border/70 bg-black/28 text-[0.68rem] leading-none">
+                  K
+                </kbd>
               </button>
               <div className="size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]" />
               {signedIn ? (
