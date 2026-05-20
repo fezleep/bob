@@ -125,10 +125,10 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
               </span>
             </div>
 
-            <h1 className="mt-5 text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.65rem]">
+            <h1 className="mt-5 break-words text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.65rem]">
               {primaryName}
             </h1>
-            <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-[0.95rem]">
+            <p className="mt-4 max-w-2xl break-words text-sm leading-6 text-muted sm:text-[0.95rem]">
               {lead.name}
               {lead.email ? ` - ${lead.email}` : ""}
             </p>
@@ -218,7 +218,7 @@ function DetailStat({
   return (
     <div className="rounded-md border border-white/[0.06] bg-elevated/[0.32] p-3 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] transition duration-200 hover:border-white/[0.1] hover:bg-elevated/[0.46]">
       <p className="text-xs font-medium text-faint">{label}</p>
-      <p className="mt-1 text-sm font-medium text-ink">{value}</p>
+      <p className="mt-1 break-words text-sm font-medium text-ink">{value}</p>
       {helper ? <p className="mt-1 text-xs leading-4 text-faint">{helper}</p> : null}
     </div>
   );

@@ -26,3 +26,26 @@ test("command palette trigger is present", async ({ page }) => {
 
   await expect(page.getByRole("button", { name: /open command palette/i })).toBeVisible();
 });
+
+test("mobile unauthenticated navigation exposes auth actions", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const mobileNav = page.getByRole("navigation", { name: /mobile navigation/i });
+  await expect(mobileNav.getByRole("link", { name: "Login" })).toBeVisible();
+  await expect(mobileNav.getByRole("link", { name: "Register" })).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .toBe(true);
+});
+
+test("command palette fits a mobile viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "networkidle" });
+  await page.getByRole("button", { name: /open command palette/i }).click();
+
+  await expect(page.getByRole("dialog", { name: /command palette/i })).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .toBe(true);
+});

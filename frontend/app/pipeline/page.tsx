@@ -25,7 +25,7 @@ export default async function PipelinePage() {
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
               Pipeline
             </p>
-            <h1 className="mt-3 text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+            <h1 className="mt-3 break-words text-3xl font-semibold leading-tight text-ink sm:text-4xl">
               Every lead, placed where the work actually is.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-[0.95rem]">
@@ -34,7 +34,7 @@ export default async function PipelinePage() {
             </p>
           </div>
 
-          <div className="grid min-w-56 grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-1">
+          <div className="grid w-full grid-cols-2 gap-3 sm:w-auto sm:min-w-56 sm:grid-cols-3 lg:grid-cols-1">
             <PipelineStat label="Total leads" value={leads.length} />
             <PipelineStat label="Open work" value={openLeads.length} />
             <Link

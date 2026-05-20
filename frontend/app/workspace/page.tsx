@@ -145,7 +145,7 @@ export default async function WorkspacePage() {
               </div>
             </div>
 
-            <h1 className="mt-7 max-w-2xl text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.72rem]">
+            <h1 className="mt-7 max-w-2xl break-words text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.72rem]">
               The operating read for conversations that move the business.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-[0.95rem]">
@@ -215,7 +215,7 @@ export default async function WorkspacePage() {
       </section>
 
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
               Lead focus

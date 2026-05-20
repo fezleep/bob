@@ -64,7 +64,7 @@ export default function Home() {
               </div>
             </div>
 
-            <h1 className="mt-8 max-w-2xl text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.72rem]">
+            <h1 className="mt-8 max-w-2xl break-words text-3xl font-semibold leading-tight text-ink sm:text-4xl lg:text-[2.72rem]">
               A calm workspace for managing leads without the CRM weight.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-[0.95rem]">

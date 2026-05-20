@@ -147,7 +147,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center bg-[rgb(6_5_4)] px-3 py-20 text-ink sm:px-6 sm:py-24"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[rgb(6_5_4)] px-3 py-4 text-ink sm:px-6 sm:py-16"
       aria-labelledby="command-palette-title"
       aria-modal="true"
       role="dialog"
@@ -159,7 +159,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     >
       <div
         ref={panelRef}
-        className="w-full max-w-2xl overflow-hidden rounded-lg border border-accent/22 bg-[rgb(15_13_11)] shadow-[0_1px_0_rgb(255_255_255/0.045)_inset,0_32px_100px_rgb(0_0_0/0.62)] motion-rise"
+        className="motion-rise flex max-h-[calc(100vh-2rem)] w-full max-w-2xl flex-col overflow-hidden rounded-lg border border-accent/22 bg-[rgb(15_13_11)] shadow-[0_1px_0_rgb(255_255_255/0.045)_inset,0_32px_100px_rgb(0_0_0/0.62)] sm:max-h-[calc(100vh-8rem)]"
       >
         <div className="border-b border-border/70 bg-[rgb(20_17_14)] px-4 py-3 sm:px-5">
           <div className="flex items-center gap-3">
@@ -192,7 +192,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           />
         </div>
 
-        <div className="max-h-[60vh] overflow-y-auto bg-[rgb(13_11_9)] p-2">
+        <div className="min-h-0 flex-1 overflow-y-auto bg-[rgb(13_11_9)] p-2">
           {filteredNavigation.length > 0 ? (
             <CommandSection title="Quick navigation">
               {filteredNavigation.map((item) => (
@@ -241,7 +241,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/65 bg-[rgb(20_17_14)] px-4 py-3 text-xs text-faint sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border/65 bg-[rgb(20_17_14)] px-4 py-3 text-xs leading-5 text-faint sm:px-5">
           <span>Ctrl/Cmd K opens Bob from anywhere.</span>
           <span>Ctrl+Shift+K fallback</span>
         </div>
@@ -282,17 +282,17 @@ function CommandButton({
     <button
       type="button"
       onClick={onSelect}
-      className="focus-ring group flex w-full items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-left transition duration-150 hover:border-accent/24 hover:bg-elevated/68 focus-visible:border-accent/45 focus-visible:bg-elevated/72"
+      className="focus-ring group flex w-full min-w-0 items-center gap-3 rounded-md border border-transparent px-3 py-2.5 text-left transition duration-150 hover:border-accent/24 hover:bg-elevated/68 focus-visible:border-accent/45 focus-visible:bg-elevated/72"
     >
       <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border/70 bg-black/28 text-xs font-semibold text-muted transition group-hover:border-accent/28 group-hover:text-[rgb(var(--champagne))]">
         {normalizeSearchValue(title).charAt(0).toUpperCase() || "?"}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="flex items-center justify-between gap-3">
+        <span className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
           <span className="truncate text-sm font-medium text-ink">
             {normalizeSearchValue(title) || "Untitled"}
           </span>
-          <span className="shrink-0 text-[0.68rem] font-medium uppercase tracking-[0.12em] text-faint">
+          <span className="max-w-full truncate text-[0.68rem] font-medium uppercase tracking-[0.12em] text-faint sm:shrink-0">
             {eyebrow}
           </span>
         </span>

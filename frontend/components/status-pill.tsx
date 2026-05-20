@@ -11,9 +11,9 @@ const statusStyles: Record<LeadStatus, string> = {
 export function StatusPill({ status }: { status: LeadStatus }) {
   return (
     <span
-      className={`inline-flex h-6 items-center rounded-full border px-2.5 text-xs font-medium shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] ${statusStyles[status]}`}
+      className={`inline-flex h-6 max-w-full items-center rounded-full border px-2.5 text-xs font-medium shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] ${statusStyles[status]}`}
     >
-      {formatLeadStatus(status)}
+      <span className="truncate whitespace-nowrap">{formatLeadStatus(status)}</span>
     </span>
   );
 }

@@ -178,11 +178,11 @@ export function AppShell({
             <div className="hidden text-xs font-medium uppercase tracking-[0.16em] text-faint lg:block">
               {activeSection}
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={openCommandPalette}
-                className="focus-ring hidden h-8 w-72 items-center justify-between gap-3 rounded-md border border-border/65 bg-panel/88 px-2.5 text-sm text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset] transition duration-200 hover:border-accent/34 hover:bg-elevated/64 hover:text-ink sm:flex"
+                className="focus-ring hidden h-8 w-64 items-center justify-between gap-3 rounded-md border border-border/65 bg-panel/88 px-2.5 text-sm text-muted shadow-[0_1px_0_rgb(255_255_255/0.035)_inset] transition duration-200 hover:border-accent/34 hover:bg-elevated/64 hover:text-ink md:w-72 sm:flex"
                 aria-label="Open command palette"
               >
                 <span className="shrink-0">Search Bob</span>
@@ -204,7 +204,7 @@ export function AppShell({
                   K
                 </kbd>
               </button>
-              <div className="size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset]" />
+              <div className="hidden size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset] sm:block" />
               {signedIn ? (
                 <Link
                   href="/logout"
@@ -215,7 +215,10 @@ export function AppShell({
               ) : null}
             </div>
           </div>
-          <nav className="flex gap-1 overflow-x-auto border-t border-border/45 px-4 py-2 sm:px-6 lg:hidden">
+          <nav
+            className="flex flex-wrap items-center gap-1.5 border-t border-border/45 px-4 py-2 sm:px-6 lg:hidden"
+            aria-label="Mobile navigation"
+          >
             {navItems.map((item) => {
               const active =
                 item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
@@ -225,7 +228,7 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   className={[
-                    "focus-ring shrink-0 rounded-md border px-3 py-1.5 text-xs font-medium transition duration-200",
+                    "focus-ring rounded-md border px-2.5 py-1.5 text-xs font-medium transition duration-200",
                     active
                       ? "border-accent/28 bg-elevated/75 text-ink"
                       : "border-transparent text-muted hover:bg-elevated/45 hover:text-ink",
@@ -235,6 +238,30 @@ export function AppShell({
                 </Link>
               );
             })}
+            <span className="mx-0.5 h-5 w-px bg-border/55" aria-hidden="true" />
+            {signedIn ? (
+              <Link
+                href="/logout"
+                className="focus-ring rounded-md border border-border/65 bg-elevated/25 px-2.5 py-1.5 text-xs font-medium text-muted transition duration-200 hover:border-accent/34 hover:text-ink"
+              >
+                Logout
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="focus-ring rounded-md border border-border/65 bg-elevated/25 px-2.5 py-1.5 text-xs font-medium text-muted transition duration-200 hover:border-accent/34 hover:text-ink"
+                >
+                  Login
+                </Link>
+                <Link
+                  href="/register"
+                  className="focus-ring rounded-md border border-accent/28 bg-accent/[0.08] px-2.5 py-1.5 text-xs font-medium text-[rgb(var(--champagne))] transition duration-200 hover:border-accent/42 hover:text-ink"
+                >
+                  Register
+                </Link>
+              </>
+            )}
           </nav>
         </header>
 

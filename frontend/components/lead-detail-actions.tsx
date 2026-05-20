@@ -84,7 +84,7 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
           className="rounded-lg border border-border/50 bg-elevated/[0.22] p-4 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset]"
         >
           <input type="hidden" name="leadId" value={lead.id} />
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-medium text-ink">Edit details</p>
             <InlineMessage message={updateState.message} success={updateState.success} />
           </div>
@@ -166,7 +166,7 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
                 Capture the next useful piece of context.
               </p>
             </div>
-            <span className="text-xs font-medium uppercase tracking-[0.14em] text-faint transition duration-200 group-open:text-muted">
+            <span className="shrink-0 text-xs font-medium uppercase tracking-[0.14em] text-faint transition duration-200 group-open:text-muted">
               Expand
             </span>
           </summary>
@@ -342,7 +342,7 @@ function SubmitButton({
     <button
       type="submit"
       disabled={pending}
-      className="focus-ring h-10 rounded-md border border-accent/32 bg-accent/[0.14] px-3 text-sm font-medium text-ink transition duration-200 hover:border-accent/45 hover:bg-accent/[0.19] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100"
+      className="focus-ring h-10 w-full rounded-md border border-accent/32 bg-accent/[0.14] px-3 text-sm font-medium text-ink transition duration-200 hover:border-accent/45 hover:bg-accent/[0.19] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60 disabled:active:scale-100 sm:w-auto"
     >
       {pending ? pendingLabel : idleLabel}
     </button>

@@ -77,7 +77,7 @@ export function LeadList({
                   >
                     {lead.company || lead.name}
                   </button>
-                  <div className="md:hidden">
+                  <div className="shrink-0 md:hidden">
                     <StatusPill status={lead.status} />
                   </div>
                 </div>
@@ -115,11 +115,11 @@ export function LeadList({
           >
             <div className="border-b border-border/60 p-5">
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
                     Lead preview
                   </p>
-                  <h2 className="mt-3 text-2xl font-semibold leading-tight text-ink">
+                  <h2 className="mt-3 break-words text-2xl font-semibold leading-tight text-ink">
                     {selectedLead.company || selectedLead.name}
                   </h2>
                 </div>
