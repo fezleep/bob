@@ -28,12 +28,12 @@ export default async function LeadsPage() {
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
               Conversations
             </p>
-            <h1 className="mt-3 text-3xl font-semibold leading-tight text-ink">
+            <h1 className="mt-3 break-words text-3xl font-semibold leading-tight text-ink">
               Leads without the hard cut.
             </h1>
             <p className="mt-3 text-sm leading-6 text-muted">{quietCopy}</p>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:w-64">
+          <div className="grid w-full grid-cols-2 gap-3 sm:w-64">
             <LeadStat label="Total" value={leads.length} />
             <LeadStat label="Open" value={openLeads.length} />
           </div>

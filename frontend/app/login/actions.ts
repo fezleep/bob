@@ -51,7 +51,7 @@ export async function loginAction(
     };
   }
 
-  redirect("/workspace");
+  redirect(nextPath(formData));
 }
 
 export async function registerAction(

@@ -15,7 +15,7 @@ export default function AboutPage() {
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
             About bob
           </p>
-          <h1 className="mt-3 text-3xl font-semibold leading-tight text-ink sm:text-4xl">
+          <h1 className="mt-3 break-words text-3xl font-semibold leading-tight text-ink sm:text-4xl">
             Quiet software for lead work that needs clarity.
           </h1>
           <p className="mt-4 text-sm leading-6 text-muted sm:text-[0.95rem]">
