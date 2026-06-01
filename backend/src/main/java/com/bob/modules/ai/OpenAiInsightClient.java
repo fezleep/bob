@@ -3,10 +3,13 @@ package com.bob.modules.ai;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
 import java.util.Map;
@@ -14,6 +17,7 @@ import java.util.Map;
 @Component
 class OpenAiInsightClient implements AiInsightClient {
 
+    private static final Logger logger = LoggerFactory.getLogger(OpenAiInsightClient.class);
     private static final String RESPONSES_URL = "https://api.openai.com/v1/responses";
 
     private final AiProperties properties;
@@ -38,8 +42,38 @@ class OpenAiInsightClient implements AiInsightClient {
                     .body(String.class);
 
             return parseInsight(responseBody);
-        } catch (RestClientException | JsonProcessingException | IllegalArgumentException exception) {
-            throw new AiProviderException("AI insight generation failed.", exception);
+        } catch (RestClientResponseException exception) {
+            logger.warn(
+                    "AI provider request failed: category=provider_error status={} model={}",
+                    exception.getStatusCode().value(),
+                    properties.normalizedModel()
+            );
+            throw new AiProviderException(
+                    "AI insight generation failed.",
+                    AiProviderException.Category.PROVIDER_ERROR,
+                    exception
+            );
+        } catch (RestClientException exception) {
+            logger.warn(
+                    "AI provider request failed: category=provider_error status=unavailable model={}",
+                    properties.normalizedModel()
+            );
+            throw new AiProviderException(
+                    "AI insight generation failed.",
+                    AiProviderException.Category.PROVIDER_ERROR,
+                    exception
+            );
+        } catch (JsonProcessingException | IllegalArgumentException exception) {
+            logger.warn(
+                    "AI provider response parsing failed: category=parsing_error model={} reason={}",
+                    properties.normalizedModel(),
+                    exception.getClass().getSimpleName()
+            );
+            throw new AiProviderException(
+                    "AI insight response parsing failed.",
+                    AiProviderException.Category.PARSING_ERROR,
+                    exception
+            );
         }
     }
 

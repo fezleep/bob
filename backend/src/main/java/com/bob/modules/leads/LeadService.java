@@ -2,7 +2,10 @@ package com.bob.modules.leads;
 
 import com.bob.modules.ai.AiGeneratedInsight;
 import com.bob.modules.ai.AiInsightClient;
+import com.bob.modules.ai.AiProviderException;
 import com.bob.modules.ai.AiProperties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -17,6 +20,7 @@ import java.util.UUID;
 @Service
 class LeadService {
 
+    private static final Logger logger = LoggerFactory.getLogger(LeadService.class);
     private static final int MAX_PAGE_SIZE = 100;
     private static final Set<String> ALLOWED_SORTS = Set.of("createdAt", "updatedAt", "name", "status", "company");
 
@@ -150,9 +154,11 @@ class LeadService {
     @Transactional
     LeadInsightResponse generateInsight(UUID id) {
         Lead lead = findLead(id);
+        logAiConfigState("generate", id);
 
         if (!aiProperties.configured()) {
             String unavailableMessage = aiProperties.unavailableMessage();
+            logger.info("AI insight unavailable: leadId={} reason={}", id, unavailableReason());
             return leadInsightRepository.findByLeadId(id)
                     .map(insight -> LeadInsightResponse.unavailableWithInsight(insight, unavailableMessage))
                     .orElseGet(() -> LeadInsightResponse.unavailable(unavailableMessage));
@@ -165,7 +171,18 @@ class LeadService {
                 .limit(8)
                 .toList();
 
-        AiGeneratedInsight generatedInsight = aiInsightClient.generate(buildLeadContext(lead, notes, activities));
+        AiGeneratedInsight generatedInsight;
+        try {
+            generatedInsight = aiInsightClient.generate(buildLeadContext(lead, notes, activities));
+        } catch (AiProviderException exception) {
+            logger.warn(
+                    "AI insight generation failed: leadId={} category={} model={}",
+                    id,
+                    exception.category(),
+                    aiProperties.normalizedModel()
+            );
+            throw exception;
+        }
         LeadInsight insight = leadInsightRepository.findByLeadId(id)
                 .orElseGet(() -> new LeadInsight(
                         lead,
@@ -183,7 +200,34 @@ class LeadService {
                 truncate(aiProperties.normalizedModel(), 120)
         );
 
-        return LeadInsightResponse.from(leadInsightRepository.save(insight));
+        LeadInsight savedInsight = leadInsightRepository.save(insight);
+        logger.info("AI insight saved: leadId={} insightId={} model={}", id, savedInsight.getId(), savedInsight.getModel());
+        return LeadInsightResponse.from(savedInsight);
+    }
+
+    private void logAiConfigState(String operation, UUID leadId) {
+        logger.info(
+                "AI insight config state: operation={} leadId={} enabled={} modelPresent={} apiKeyPresent={} model={}",
+                operation,
+                leadId,
+                aiProperties.enabled(),
+                present(aiProperties.model()),
+                present(aiProperties.openaiApiKey()),
+                aiProperties.normalizedModel()
+        );
+    }
+
+    private String unavailableReason() {
+        if (!aiProperties.enabled()) {
+            return "disabled";
+        }
+        if (!present(aiProperties.openaiApiKey())) {
+            return "missing_api_key";
+        }
+        if (!present(aiProperties.model())) {
+            return "missing_model";
+        }
+        return "unknown";
     }
 
     private Lead findLead(UUID id) {
@@ -261,6 +305,10 @@ class LeadService {
             return null;
         }
         return value.trim();
+    }
+
+    private static boolean present(String value) {
+        return value != null && !value.isBlank();
     }
 
     private static String allowedSort(String sort) {

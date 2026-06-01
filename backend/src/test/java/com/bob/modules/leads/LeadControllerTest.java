@@ -2,6 +2,7 @@ package com.bob.modules.leads;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.bob.modules.auth.JwtService;
+import com.bob.modules.ai.AiProviderException;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -282,5 +283,20 @@ class LeadControllerTest {
                 .andExpect(jsonPath("$[0].description").value("Status changed from NEW to CONTACTED"));
 
         verify(leadService).listActivities(leadId);
+    }
+
+    @Test
+    void generationProviderFailureReturnsGenerationFailureMessage() throws Exception {
+        UUID leadId = UUID.randomUUID();
+
+        when(leadService.generateInsight(leadId)).thenThrow(new AiProviderException(
+                "AI insight generation failed.",
+                AiProviderException.Category.PROVIDER_ERROR,
+                new RuntimeException("provider failed")
+        ));
+
+        mockMvc.perform(post("/api/leads/{id}/insights/generate", leadId))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.message").value("AI insight generation failed. Try again in a moment."));
     }
 }

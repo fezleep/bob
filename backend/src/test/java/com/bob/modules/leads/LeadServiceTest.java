@@ -3,6 +3,7 @@ package com.bob.modules.leads;
 import com.bob.modules.ai.AiGeneratedInsight;
 import com.bob.modules.ai.AiInsightClient;
 import com.bob.modules.ai.AiProperties;
+import com.bob.modules.ai.AiProviderException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,6 +18,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -336,6 +338,43 @@ class LeadServiceTest {
         assertThat(promptCaptor.getValue()).doesNotContain("Authorization");
         assertThat(promptCaptor.getValue()).doesNotContain("OPENAI_API_KEY");
         verify(leadInsightRepository).save(any(LeadInsight.class));
+    }
+
+    @Test
+    void configuredAiIsConsideredAvailableBeforeGeneration() {
+        UUID leadId = UUID.randomUUID();
+
+        when(leadRepository.existsById(leadId)).thenReturn(true);
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
+
+        LeadInsightResponse response = leadService.getInsight(leadId);
+
+        assertThat(response.aiAvailable()).isTrue();
+        assertThat(response.message()).isEqualTo("No Bob read has been generated for this lead yet.");
+        assertThat(response.summary()).isNull();
+        verifyNoInteractions(aiInsightClient);
+    }
+
+    @Test
+    void providerFailureIsNotReturnedAsUnavailableConfiguration() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(aiInsightClient.generate(any())).thenThrow(new AiProviderException(
+                "AI insight generation failed.",
+                AiProviderException.Category.PROVIDER_ERROR,
+                new RuntimeException("provider failed")
+        ));
+
+        assertThatThrownBy(() -> leadService.generateInsight(leadId))
+                .isInstanceOf(AiProviderException.class)
+                .hasMessage("AI insight generation failed.");
+
+        verify(aiInsightClient).generate(any());
+        verify(leadInsightRepository, never()).save(any(LeadInsight.class));
     }
 
     private static Lead lead(UUID id, LeadStatus status) {
