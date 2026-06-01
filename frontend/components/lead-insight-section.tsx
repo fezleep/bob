@@ -38,7 +38,7 @@ export function LeadInsightSection({
             Lead summary and next move
           </h2>
           <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
-            A short operational read from the lead profile, notes, and recent activity.
+            Bob reads the lead context and suggests a practical next step.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export function LeadInsightSection({
           <InsightRow label="Operational read" value={insight.statusRead} />
           <InsightRow label="Next action" value={insight.nextAction} emphasis />
           {insight.attention ? (
-            <InsightRow label="Attention" value={insight.attention} attention />
+            <InsightRow label="Attention signal" value={insight.attention} attention />
           ) : null}
           {insight.generatedAt ? (
             <p className="pt-1 text-xs text-faint">

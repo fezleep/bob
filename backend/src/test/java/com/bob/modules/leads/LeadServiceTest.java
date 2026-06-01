@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -276,6 +277,33 @@ class LeadServiceTest {
     }
 
     @Test
+    void returnsSavedInsightWhenAiIsDisabled() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+        LeadInsight savedInsight = insight(lead);
+        leadService = new LeadService(
+                leadRepository,
+                leadNoteRepository,
+                leadActivityRepository,
+                leadInsightRepository,
+                new AiProperties(false, "test-model", "test-key"),
+                aiInsightClient
+        );
+
+        when(leadRepository.existsById(leadId)).thenReturn(true);
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.of(savedInsight));
+
+        LeadInsightResponse response = leadService.getInsight(leadId);
+
+        assertThat(response.aiAvailable()).isFalse();
+        assertThat(response.summary()).isEqualTo("Analytical Engines has a saved read.");
+        assertThat(response.statusRead()).isEqualTo("conversation is warm");
+        assertThat(response.nextAction()).isEqualTo("Send the next practical follow-up.");
+        assertThat(response.message()).contains("Showing the latest saved Bob read.");
+        verifyNoInteractions(aiInsightClient);
+    }
+
+    @Test
     void generatesAndPersistsLeadInsight() {
         UUID leadId = UUID.randomUUID();
         Lead lead = lead(leadId, LeadStatus.CONTACTED);
@@ -301,6 +329,12 @@ class LeadServiceTest {
         assertThat(response.summary()).isEqualTo("Analytical Engines has a fresh conversation around timing.");
         assertThat(response.statusRead()).isEqualTo("conversation is warming up");
         assertThat(response.model()).isEqualTo("test-model");
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(aiInsightClient).generate(promptCaptor.capture());
+        assertThat(promptCaptor.getValue()).contains("Asked for a timeline next week.");
+        assertThat(promptCaptor.getValue()).doesNotContain("ada@example.com");
+        assertThat(promptCaptor.getValue()).doesNotContain("Authorization");
+        assertThat(promptCaptor.getValue()).doesNotContain("OPENAI_API_KEY");
         verify(leadInsightRepository).save(any(LeadInsight.class));
     }
 
@@ -325,5 +359,19 @@ class LeadServiceTest {
         ReflectionTestUtils.setField(activity, "id", id);
         ReflectionTestUtils.setField(activity, "createdAt", OffsetDateTime.parse("2026-05-13T10:00:00Z"));
         return activity;
+    }
+
+    private static LeadInsight insight(Lead lead) {
+        LeadInsight insight = new LeadInsight(
+                lead,
+                "Analytical Engines has a saved read.",
+                "conversation is warm",
+                "Send the next practical follow-up.",
+                "Do not let the lead sit without a next step.",
+                "test-model"
+        );
+        ReflectionTestUtils.setField(insight, "id", UUID.randomUUID());
+        ReflectionTestUtils.setField(insight, "generatedAt", OffsetDateTime.parse("2026-05-13T10:00:00Z"));
+        return insight;
     }
 }
