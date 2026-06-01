@@ -13,7 +13,7 @@ Spring Boot backend for bob.
 ## Local prerequisites
 
 - Java 21
-- Maven 3.9+
+- Maven Wrapper included in this project
 - Docker Compose for PostgreSQL
 
 Start the database from the repository root:
@@ -46,14 +46,14 @@ Use the Spring datasource variables when you need to override the full JDBC conn
 From `/backend`:
 
 ```bash
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 ## Test and build
 
 ```bash
-mvn test
-mvn package
+./mvnw test
+./mvnw package
 ```
 
 ## Verify locally

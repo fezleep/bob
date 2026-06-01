@@ -22,4 +22,5 @@ These notes summarize recent local development and validation work. They are dev
 - Ran local validation for the next sprint readiness pass on branch `test/full-product-validation`.
 - Frontend lint, production build, and Playwright smoke tests passed after refreshing the local frontend install shims.
 - Backend Maven tests could not be executed in this environment because `mvn` is not installed or available on `PATH`.
+- Added the backend Maven Wrapper so backend validation can run with `./mvnw test` without a globally installed Maven.
 - Reviewed key UI/auth files for mobile auth buttons, command palette layout, protected route behavior, login/register redirects, and app shell auth state; no small product bug was found during this pass.
