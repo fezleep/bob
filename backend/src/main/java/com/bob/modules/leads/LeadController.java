@@ -73,4 +73,14 @@ class LeadController {
     List<LeadActivityResponse> listActivities(@PathVariable UUID id) {
         return leadService.listActivities(id);
     }
+
+    @GetMapping("/{id}/insights")
+    LeadInsightResponse getInsight(@PathVariable UUID id) {
+        return leadService.getInsight(id);
+    }
+
+    @PostMapping("/{id}/insights/generate")
+    LeadInsightResponse generateInsight(@PathVariable UUID id) {
+        return leadService.generateInsight(id);
+    }
 }

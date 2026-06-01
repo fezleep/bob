@@ -59,6 +59,7 @@ Implementado hoje:
 - gestão de leads com criação, listagem, detalhe, edição e mudança de status
 - pipeline kanban agrupado por status do lead
 - ações no detalhe do lead, notas e histórico de atividades
+- Bob read: resumo de lead com IA no backend, leitura operacional, proximo passo e sinal de atencao
 - sinais de inteligência para leads recentes, parados e que precisam de atenção
 - filtros inteligentes e busca contextual nos dados dos leads
 - command palette para navegação e ações rápidas
@@ -84,7 +85,7 @@ Implementado hoje:
 | Infra local | Docker Compose |
 | Qualidade | Maven tests, Spring Boot tests, ESLint, Next.js build, Playwright smoke tests, GitHub Actions |
 
-Redis, RabbitMQ, OpenAI API, Prometheus, Grafana, OpenTelemetry, AWS RDS, AWS ECS/EKS, Terraform e Kubernetes são itens de roadmap. Eles não fazem parte da implementação atual.
+Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS RDS, AWS ECS/EKS, Terraform e Kubernetes são itens de roadmap. Eles não fazem parte da implementação atual.
 
 ## arquitetura
 
@@ -103,7 +104,8 @@ O backend hoje é um monolito modular. Essa escolha é proposital. Para esta fas
 Áreas atuais do backend:
 
 - `modules/auth`: registro, login, usuário atual, hash de senha com BCrypt e emissão de JWT
-- `modules/leads`: fluxo de leads, notas, histórico de atividades e transições de status
+- `modules/leads`: fluxo de leads, notas, histórico de atividades, transições de status e insights de lead persistidos
+- `modules/ai`: cliente de geração de insight com OpenAI e configuração de IA
 - `modules/system`: status da aplicação
 - `shared/api`: erros de API e tratamento de exceções
 - `config`: segurança e configuração da aplicação
@@ -193,6 +195,32 @@ BOB_AUTH_JWT_EXPIRATION_MINUTES=480
 
 O secret padrão serve só para desenvolvimento local. Fora de demo local, use um secret forte.
 
+## insights com IA
+
+O primeiro fluxo com IA do bob e o "Bob read" no detalhe do lead. Ele so e gerado quando um usuario autenticado pede e inclui resumo curto, leitura operacional, proximo passo sugerido e sinal de atencao quando fizer sentido.
+
+A chave da OpenAI fica apenas no backend. O frontend chama o backend do bob, e o backend chama a OpenAI. Se a IA estiver desabilitada, se `OPENAI_API_KEY` estiver ausente ou se `BOB_AI_MODEL` nao estiver configurado, a API retorna um estado indisponivel em vez de fingir que um insight foi gerado.
+
+O setup local e o CI rodam sem IA por padrao:
+
+```bash
+BOB_AI_ENABLED=false
+BOB_AI_MODEL=
+OPENAI_API_KEY=
+```
+
+Para habilitar IA localmente, configure variaveis de ambiente no backend e reinicie o backend:
+
+```bash
+BOB_AI_ENABLED=true
+BOB_AI_MODEL=<modelo-disponivel-na-sua-conta-openai>
+OPENAI_API_KEY=sk-...
+```
+
+Nunca commite chaves reais, nunca exponha chaves da OpenAI com variaveis `NEXT_PUBLIC_`, e use segredos diferentes para local, dev e producao. `BOB_AI_MODEL` precisa ser um modelo disponivel na sua conta da OpenAI.
+
+A IA no bob e assistiva, nao autonoma. Ela nao altera dados do lead nem executa acoes pelo usuario, e a saida nao deve ser tratada como verdade final de negocio. Se a IA ficar desabilitada, o bob continua funcionando normalmente; insights salvos podem continuar aparecendo se ja tiverem sido gerados antes.
+
 Crie o primeiro usuário local pelo navegador:
 
 ```text
@@ -243,11 +271,9 @@ Próximos passos de produto:
 
 Inteligência futura:
 
-- resumo de lead a partir de notas e atividades
+- historico mais rico de insights e feedback de qualidade
 - detecção de lead parado
-- sugestão de próximo passo
 - rascunho curto de follow-up
-- integração com OpenAI API ligada a ações explícitas do fluxo
 
 Infraestrutura futura, só quando fizer sentido:
 

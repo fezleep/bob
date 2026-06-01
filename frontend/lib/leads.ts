@@ -21,6 +21,19 @@ export type LeadActivity = {
   createdAt: string;
 };
 
+export type LeadInsight = {
+  aiAvailable: boolean;
+  message: string;
+  id: string | null;
+  leadId: string | null;
+  summary: string | null;
+  statusRead: string | null;
+  nextAction: string | null;
+  attention: string | null;
+  model: string | null;
+  generatedAt: string | null;
+};
+
 export type Lead = {
   id: string;
   name: string;
@@ -51,6 +64,7 @@ type GetLeadsOptions = {
 export type LeadDetail = Lead & {
   notes: LeadNote[];
   activities: LeadActivity[];
+  insight: LeadInsight;
 };
 
 export type CreateLeadInput = {
@@ -128,16 +142,18 @@ export async function getLeadById(id: string, authToken?: string) {
 }
 
 export async function getLeadDetail(id: string, authToken?: string): Promise<LeadDetail> {
-  const [lead, notes, activities] = await Promise.all([
+  const [lead, notes, activities, insight] = await Promise.all([
     getLeadById(id, authToken),
     apiFetch<LeadNote[]>(`/api/leads/${id}/notes`, { authToken }),
     apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`, { authToken }),
+    apiFetch<LeadInsight>(`/api/leads/${id}/insights`, { authToken }),
   ]);
 
   return {
     ...lead,
     notes,
     activities,
+    insight,
   };
 }
 
@@ -165,6 +181,13 @@ export async function addLeadNote(id: string, content: string, authToken?: strin
 
 export async function getLeadActivities(id: string, authToken?: string) {
   return apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`, { authToken });
+}
+
+export async function generateLeadInsight(id: string, authToken?: string) {
+  return apiFetch<LeadInsight>(`/api/leads/${id}/insights/generate`, {
+    method: "POST",
+    authToken,
+  });
 }
 
 function titleizeEnum(value: string | null | undefined, fallback = "Unknown") {

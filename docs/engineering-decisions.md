@@ -38,11 +38,11 @@ The UI remains calm, warm, and product-oriented. Authentication was added withou
 
 Reason: technical hardening should support the product experience instead of overpowering it.
 
-## 7. Keep AI as Roadmap Until Workflow-Backed
+## 7. Add AI Only Behind a Concrete Workflow
 
-OpenAI API integration is documented as future work only.
+Bob now includes one AI-assisted workflow: a lead detail "Bob read" generated on demand from the lead profile, notes, and recent activity. The OpenAI API key is backend-only, AI is disabled by default, and `BOB_AI_MODEL` must be configured explicitly to a model available for the environment's OpenAI account. Missing configuration returns an honest unavailable state without calling the provider.
 
-Reason: bob should remain useful without AI. Future intelligence should support concrete workflows such as summaries, stale-lead detection, and next-step suggestions.
+Reason: bob should remain useful without AI, and AI should assist the user's operational decision instead of taking over. Persisting only the latest insight keeps the feature product-real without introducing chat, streaming, queues, or autonomous actions.
 
 ## 8. Avoid Premature Infrastructure
 
@@ -58,6 +58,8 @@ Reason: unnecessary services would make local review harder and weaken the credi
 - Spring Security/JWT authentication foundation
 - BCrypt password hashing
 - Flyway migrations for schema evolution
+- backend-only OpenAI integration for on-demand lead insights
+- disabled/unavailable AI behavior when AI is off, no API key is configured, or no model is configured
 - typed frontend data structures and API access
 - auth-aware frontend API handling
 - frontend lint and build scripts
@@ -72,6 +74,6 @@ Reason: unnecessary services would make local review harder and weaken the credi
 - production deployment automation
 - Redis
 - RabbitMQ
-- OpenAI API integration
+- AI chat UI, streaming responses, or autonomous lead actions
 - Prometheus, Grafana, or OpenTelemetry
 - AWS, Terraform, or Kubernetes

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ActivityTimeline } from "@/components/activity-timeline";
+import { LeadInsightSection } from "@/components/lead-insight-section";
 import { LeadDetailActions } from "@/components/lead-detail-actions";
 import { NotesSection } from "@/components/notes-section";
 import { StatusPill } from "@/components/status-pill";
@@ -197,6 +198,8 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
           status: lead.status,
         }}
       />
+
+      <LeadInsightSection leadId={lead.id} insight={lead.insight} />
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_24rem] xl:items-start">
         <NotesSection notes={lead.notes} momentumRead={momentumRead} />

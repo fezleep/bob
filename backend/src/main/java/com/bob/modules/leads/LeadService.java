@@ -1,5 +1,8 @@
 package com.bob.modules.leads;
 
+import com.bob.modules.ai.AiGeneratedInsight;
+import com.bob.modules.ai.AiInsightClient;
+import com.bob.modules.ai.AiProperties;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -20,15 +23,24 @@ class LeadService {
     private final LeadRepository leadRepository;
     private final LeadNoteRepository leadNoteRepository;
     private final LeadActivityRepository leadActivityRepository;
+    private final LeadInsightRepository leadInsightRepository;
+    private final AiProperties aiProperties;
+    private final AiInsightClient aiInsightClient;
 
     LeadService(
             LeadRepository leadRepository,
             LeadNoteRepository leadNoteRepository,
-            LeadActivityRepository leadActivityRepository
+            LeadActivityRepository leadActivityRepository,
+            LeadInsightRepository leadInsightRepository,
+            AiProperties aiProperties,
+            AiInsightClient aiInsightClient
     ) {
         this.leadRepository = leadRepository;
         this.leadNoteRepository = leadNoteRepository;
         this.leadActivityRepository = leadActivityRepository;
+        this.leadInsightRepository = leadInsightRepository;
+        this.aiProperties = aiProperties;
+        this.aiInsightClient = aiInsightClient;
     }
 
     @Transactional
@@ -122,6 +134,58 @@ class LeadService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    LeadInsightResponse getInsight(UUID id) {
+        ensureLeadExists(id);
+        String unavailableMessage = aiProperties.unavailableMessage();
+        return leadInsightRepository.findByLeadId(id)
+                .map(insight -> aiProperties.configured()
+                        ? LeadInsightResponse.from(insight)
+                        : LeadInsightResponse.unavailableWithInsight(insight, unavailableMessage))
+                .orElseGet(() -> aiProperties.configured()
+                        ? LeadInsightResponse.empty()
+                        : LeadInsightResponse.unavailable(unavailableMessage));
+    }
+
+    @Transactional
+    LeadInsightResponse generateInsight(UUID id) {
+        Lead lead = findLead(id);
+
+        if (!aiProperties.configured()) {
+            String unavailableMessage = aiProperties.unavailableMessage();
+            return leadInsightRepository.findByLeadId(id)
+                    .map(insight -> LeadInsightResponse.unavailableWithInsight(insight, unavailableMessage))
+                    .orElseGet(() -> LeadInsightResponse.unavailable(unavailableMessage));
+        }
+
+        List<LeadNote> notes = leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(id).stream()
+                .limit(8)
+                .toList();
+        List<LeadActivity> activities = leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(id).stream()
+                .limit(8)
+                .toList();
+
+        AiGeneratedInsight generatedInsight = aiInsightClient.generate(buildLeadContext(lead, notes, activities));
+        LeadInsight insight = leadInsightRepository.findByLeadId(id)
+                .orElseGet(() -> new LeadInsight(
+                        lead,
+                        generatedInsight.summary(),
+                        generatedInsight.statusRead(),
+                        generatedInsight.nextAction(),
+                        generatedInsight.attention(),
+                        aiProperties.normalizedModel()
+                ));
+        insight.update(
+                truncate(generatedInsight.summary(), 500),
+                truncate(generatedInsight.statusRead(), 300),
+                truncate(generatedInsight.nextAction(), 500),
+                truncate(generatedInsight.attention(), 500),
+                truncate(aiProperties.normalizedModel(), 120)
+        );
+
+        return LeadInsightResponse.from(leadInsightRepository.save(insight));
+    }
+
     private Lead findLead(UUID id) {
         return leadRepository.findById(id)
                 .orElseThrow(() -> new LeadNotFoundException(id));
@@ -145,6 +209,51 @@ class LeadService {
                     "Status changed from " + previousStatus + " to " + status
             );
         }
+    }
+
+    private String buildLeadContext(Lead lead, List<LeadNote> notes, List<LeadActivity> activities) {
+        StringBuilder context = new StringBuilder();
+        context.append("Lead\n");
+        context.append("- name: ").append(lead.getName()).append('\n');
+        context.append("- company: ").append(lead.getCompany() == null ? "unknown" : lead.getCompany()).append('\n');
+        context.append("- status: ").append(lead.getStatus()).append('\n');
+        context.append("- createdAt: ").append(lead.getCreatedAt()).append('\n');
+        context.append("- updatedAt: ").append(lead.getUpdatedAt()).append('\n');
+
+        context.append("\nRecent notes\n");
+        if (notes.isEmpty()) {
+            context.append("- none\n");
+        } else {
+            notes.forEach(note -> context
+                    .append("- ")
+                    .append(note.getCreatedAt())
+                    .append(": ")
+                    .append(note.getContent())
+                    .append('\n'));
+        }
+
+        context.append("\nRecent activity\n");
+        if (activities.isEmpty()) {
+            context.append("- none\n");
+        } else {
+            activities.forEach(activity -> context
+                    .append("- ")
+                    .append(activity.getCreatedAt())
+                    .append(" ")
+                    .append(activity.getType())
+                    .append(": ")
+                    .append(activity.getDescription())
+                    .append('\n'));
+        }
+
+        return context.toString();
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null) {
+            return null;
+        }
+        return value.length() <= maxLength ? value : value.substring(0, maxLength);
     }
 
     private static String normalizeOptional(String value) {

@@ -10,7 +10,7 @@ Browser
   -> PostgreSQL
 ```
 
-Docker Compose currently provides local PostgreSQL. Redis, RabbitMQ, OpenAI API, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes are not implemented in this branch; they remain roadmap candidates.
+Docker Compose currently provides local PostgreSQL. Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes are not implemented in this branch; they remain roadmap candidates.
 
 ## System Shape
 
@@ -26,7 +26,8 @@ The frontend communicates with the backend through HTTP APIs. The database is on
 The backend is a modular monolith. Current package areas:
 
 - `com.bob.modules.auth`: user registration, login, current-user lookup, BCrypt password hashing, JWT issuing
-- `com.bob.modules.leads`: lead records, status transitions, notes, activities, controllers, services, repositories, and DTOs
+- `com.bob.modules.leads`: lead records, status transitions, notes, activities, persisted lead insights, controllers, services, repositories, and DTOs
+- `com.bob.modules.ai`: AI configuration and the backend-only OpenAI client for operational lead insights
 - `com.bob.modules.system`: application status endpoint
 - `com.bob.shared.api`: consistent API error response and exception handling
 - `com.bob.config`: configuration properties and Spring Security wiring
@@ -56,6 +57,8 @@ Current API areas:
 - `/api/leads/{id}/status`
 - `/api/leads/{id}/notes`
 - `/api/leads/{id}/activities`
+- `GET /api/leads/{id}/insights`
+- `POST /api/leads/{id}/insights/generate`
 - `/api/status`
 - `/actuator/health`
 
@@ -82,8 +85,21 @@ Current migrations cover:
 - lead notes
 - lead activities
 - users
+- latest generated lead insight per lead
 
 Schema changes should stay explicit, reviewable, and tied to the backend behavior that requires them.
+
+## AI Boundary
+
+The lead detail "Bob read" is Bob's first AI-assisted feature. The frontend never receives an OpenAI key and never calls OpenAI directly. Authenticated users call Bob's backend, and the backend builds a small lead context from lead name, company, status, timestamps, notes, and recent activity before calling the OpenAI Responses API. JWT tokens, headers, environment variables, credentials, and internal secrets are not included in the prompt.
+
+AI configuration is environment-driven:
+
+- `BOB_AI_ENABLED`, default `false`
+- `BOB_AI_MODEL`, no default; set this to a model available to the OpenAI account
+- `OPENAI_API_KEY`, no default
+
+If AI is disabled, the API key is missing, or the model is missing, the backend returns a clear unavailable state and generation requests do not call OpenAI. Provider failures are returned as safe generic errors without raw provider details, prompts, headers, or secrets. Insights are assistive only: they summarize context and suggest a next action, but they do not mutate lead workflow state, perform autonomous actions, or represent final business truth.
 
 ## Local Infrastructure
 

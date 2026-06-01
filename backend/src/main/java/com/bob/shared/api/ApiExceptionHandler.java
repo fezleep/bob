@@ -1,8 +1,9 @@
 package com.bob.shared.api;
 
-import com.bob.modules.leads.LeadNotFoundException;
 import com.bob.modules.auth.AuthException;
 import com.bob.modules.auth.UserAlreadyExistsException;
+import com.bob.modules.ai.AiProviderException;
+import com.bob.modules.leads.LeadNotFoundException;
 import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +67,15 @@ class ApiExceptionHandler {
                 HttpStatus.CONFLICT.value(),
                 HttpStatus.CONFLICT.getReasonPhrase(),
                 exception.getMessage()
+        ));
+    }
+
+    @ExceptionHandler(AiProviderException.class)
+    ResponseEntity<ApiErrorResponse> handleAiProviderError(AiProviderException exception) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ApiErrorResponse.of(
+                HttpStatus.BAD_GATEWAY.value(),
+                HttpStatus.BAD_GATEWAY.getReasonPhrase(),
+                "AI insight generation is temporarily unavailable."
         ));
     }
 
