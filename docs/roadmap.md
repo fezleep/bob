@@ -21,6 +21,8 @@ Implemented today:
 - lead status changes
 - lead notes
 - lead activity history
+- on-demand Bob read for lead summary, operational read, next action, and attention signal
+- backend-only OpenAI integration with disabled state when AI is off, no API key is configured, or no model is configured
 - system status and actuator health endpoints
 - workspace, leads, lead detail, pipeline, home, about, login, and register frontend routes
 - intelligent lead filters
@@ -76,15 +78,28 @@ Planned:
 
 ### Contextual Intelligence
 
+Implemented:
+
+- latest persisted Bob read per lead
+- explicit user-triggered AI generation
+- backend-only OpenAI API usage
+
+Current limitations:
+
+- latest insight only, no insight history yet
+- no background processing
+- no Redis cache
+- no RabbitMQ jobs
+- no streaming or chat UI
+
 Planned:
 
-- lead summary from notes and activity
-- suggested next action
+- insight history and user feedback on generated reads
 - stale lead detection
 - follow-up draft support
 - context cards that explain why a lead needs attention
 
-OpenAI API integration belongs here as future work. It should be introduced behind explicit user actions and clear workflow value.
+AI should continue to be assistive and explicit. It should not perform autonomous lead updates.
 
 ## Backend Roadmap
 

@@ -38,8 +38,23 @@ The backend uses environment variables with local defaults that match `docker-co
 | `SPRING_DATASOURCE_USERNAME` | `bob` |
 | `SPRING_DATASOURCE_PASSWORD` | `bob` |
 | `BOB_APP_VERSION` | `0.1.0` |
+| `BOB_AI_ENABLED` | `false` |
+| `BOB_AI_MODEL` | empty |
+| `OPENAI_API_KEY` | empty |
 
 Use the Spring datasource variables when you need to override the full JDBC connection directly.
+
+`OPENAI_API_KEY` is used only by the backend for lead "Bob read" generation. Never commit a real key and never expose it through frontend or `NEXT_PUBLIC_` variables. Use different secrets for local, dev, and production.
+
+AI is off by default so local setup and CI do not require OpenAI credentials. To enable Bob read generation locally, set all three values in the backend environment and restart the backend:
+
+```bash
+BOB_AI_ENABLED=true
+BOB_AI_MODEL=<model-available-to-your-openai-account>
+OPENAI_API_KEY=sk-...
+```
+
+If AI is disabled, `OPENAI_API_KEY` is empty, or `BOB_AI_MODEL` is empty, the API returns an unavailable state instead of generating an insight. If AI is disabled after insights already exist, saved insights can still be returned for display, but regeneration stays unavailable.
 
 ## Run
 

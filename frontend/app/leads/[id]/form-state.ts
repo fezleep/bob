@@ -33,6 +33,14 @@ export type LeadNoteFormState = {
   success?: boolean;
 };
 
+export type LeadInsightFormState = {
+  fields: {
+    leadId: string;
+  };
+  message?: string;
+  success?: boolean;
+};
+
 export function createInitialLeadUpdateFormState(input: {
   leadId: string;
   name: string;
@@ -69,5 +77,13 @@ export function createInitialLeadNoteFormState(leadId: string): LeadNoteFormStat
       content: "",
     },
     errors: {},
+  };
+}
+
+export function createInitialLeadInsightFormState(leadId: string): LeadInsightFormState {
+  return {
+    fields: {
+      leadId,
+    },
   };
 }

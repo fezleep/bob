@@ -6,12 +6,14 @@ import {
   addLeadNote,
   statuses,
   changeLeadStatus,
+  generateLeadInsight,
   updateLead,
   type LeadStatus,
 } from "@/lib/leads";
 import { requireAuthToken } from "@/lib/server-auth";
 import type {
   LeadNoteFormState,
+  LeadInsightFormState,
   LeadStatusFormState,
   LeadUpdateFormState,
 } from "@/app/leads/[id]/form-state";
@@ -239,6 +241,48 @@ export async function addLeadNoteAction(
       fields,
       errors: {},
       message: "Unable to add the note right now.",
+      success: false,
+    };
+  }
+}
+
+export async function generateLeadInsightAction(
+  _previousState: LeadInsightFormState,
+  formData: FormData
+): Promise<LeadInsightFormState> {
+  const leadId = String(formData.get("leadId") || "").trim();
+
+  try {
+    const authToken = await requireAuthToken();
+    const insight = await generateLeadInsight(leadId, authToken);
+
+    revalidatePath(`/leads/${leadId}`);
+
+    if (!insight.aiAvailable || !insight.summary) {
+      return {
+        fields: { leadId },
+        message: insight.message,
+        success: false,
+      };
+    }
+
+    return {
+      fields: { leadId },
+      message: "Bob read generated.",
+      success: true,
+    };
+  } catch (error) {
+    if (error instanceof ApiError) {
+      return {
+        fields: { leadId },
+        message: error.message,
+        success: false,
+      };
+    }
+
+    return {
+      fields: { leadId },
+      message: "Unable to generate a Bob read right now.",
       success: false,
     };
   }

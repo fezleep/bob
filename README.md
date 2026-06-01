@@ -59,6 +59,7 @@ Implemented today:
 - lead management with create, list, detail, update, and status change flows
 - kanban pipeline grouped by lead status
 - lead detail actions, notes, and activity history
+- Bob read: backend-only AI lead summary, operational read, next action, and attention signal
 - lead intelligence signals such as recent, quiet, and needs-attention views
 - intelligent filters and contextual search across lead data
 - command palette for quick navigation and product actions
@@ -83,7 +84,7 @@ Implemented today:
 | Local infrastructure | Docker Compose |
 | Quality | Maven tests, Spring Boot tests, ESLint, Next.js build, Playwright smoke tests, GitHub Actions |
 
-Redis, RabbitMQ, OpenAI API, Prometheus, Grafana, OpenTelemetry, AWS RDS, AWS ECS/EKS, Terraform, and Kubernetes are roadmap items. They are not part of the current implementation.
+Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS RDS, AWS ECS/EKS, Terraform, and Kubernetes are roadmap items. They are not part of the current implementation.
 
 ## architecture
 
@@ -102,7 +103,8 @@ The backend is a modular monolith. That is intentional. For this stage, a single
 Current backend areas:
 
 - `modules/auth`: registration, login, current-user lookup, BCrypt password hashing, JWT issuing
-- `modules/leads`: lead workflow, notes, activity history, and status transitions
+- `modules/leads`: lead workflow, notes, activity history, status transitions, and persisted lead AI insights
+- `modules/ai`: OpenAI-backed insight generation client and AI configuration
 - `modules/system`: application status
 - `shared/api`: API errors and exception handling
 - `config`: security and application configuration
@@ -192,6 +194,32 @@ BOB_AUTH_JWT_EXPIRATION_MINUTES=480
 
 The default JWT secret is only for local development. Use a strong secret outside local demos.
 
+## AI insights
+
+Bob's first AI-assisted workflow is the lead detail "Bob read". It is generated only after an authenticated user asks for it and includes a short summary, operational read, suggested next action, and attention signal when relevant.
+
+The OpenAI API key stays backend-only. The frontend calls Bob's backend, and the backend calls OpenAI. If AI is disabled, `OPENAI_API_KEY` is missing, or `BOB_AI_MODEL` is missing, the API returns an unavailable state instead of pretending an insight was generated.
+
+Default local and CI setup runs without AI:
+
+```bash
+BOB_AI_ENABLED=false
+BOB_AI_MODEL=
+OPENAI_API_KEY=
+```
+
+To enable AI locally, set backend environment variables and restart the backend:
+
+```bash
+BOB_AI_ENABLED=true
+BOB_AI_MODEL=<model-available-to-your-openai-account>
+OPENAI_API_KEY=sk-...
+```
+
+Never commit real API keys, never expose OpenAI keys with `NEXT_PUBLIC_` variables, and use different secrets for local, dev, and production environments. `BOB_AI_MODEL` must be set to a model available to your OpenAI account.
+
+AI in Bob is assistive, not autonomous. It does not change lead data or take actions for the user, and the output should not be treated as final business truth. If AI stays disabled, Bob still works normally; saved insights may still display if they were generated earlier.
+
 Create the first local user in the browser:
 
 ```text
@@ -242,11 +270,9 @@ Near-term product work:
 
 Future intelligence work:
 
-- lead summaries from notes and activity
+- richer insight history and quality feedback
 - stale lead detection
-- suggested next step
 - short follow-up draft support
-- OpenAI API integration behind explicit workflow actions
 
 Future infrastructure, only when justified:
 

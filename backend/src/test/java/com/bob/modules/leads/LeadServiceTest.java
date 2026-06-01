@@ -1,5 +1,8 @@
 package com.bob.modules.leads;
 
+import com.bob.modules.ai.AiGeneratedInsight;
+import com.bob.modules.ai.AiInsightClient;
+import com.bob.modules.ai.AiProperties;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,11 +34,26 @@ class LeadServiceTest {
     @Mock
     private LeadActivityRepository leadActivityRepository;
 
+    @Mock
+    private LeadInsightRepository leadInsightRepository;
+
+    @Mock
+    private AiInsightClient aiInsightClient;
+
     private LeadService leadService;
+    private AiProperties aiProperties;
 
     @BeforeEach
     void setUp() {
-        leadService = new LeadService(leadRepository, leadNoteRepository, leadActivityRepository);
+        aiProperties = new AiProperties(true, "test-model", "test-key");
+        leadService = new LeadService(
+                leadRepository,
+                leadNoteRepository,
+                leadActivityRepository,
+                leadInsightRepository,
+                aiProperties,
+                aiInsightClient
+        );
     }
 
     @Test
@@ -162,6 +180,128 @@ class LeadServiceTest {
         assertThat(response.getFirst().leadId()).isEqualTo(leadId);
         assertThat(response.getFirst().type()).isEqualTo(LeadActivityType.LEAD_CREATED);
         assertThat(response.getFirst().description()).isEqualTo("Lead created");
+    }
+
+    @Test
+    void returnsUnavailableInsightStateWhenAiIsNotConfigured() {
+        UUID leadId = UUID.randomUUID();
+        leadService = new LeadService(
+                leadRepository,
+                leadNoteRepository,
+                leadActivityRepository,
+                leadInsightRepository,
+                new AiProperties(false, "", ""),
+                aiInsightClient
+        );
+
+        when(leadRepository.existsById(leadId)).thenReturn(true);
+
+        LeadInsightResponse response = leadService.getInsight(leadId);
+
+        assertThat(response.aiAvailable()).isFalse();
+        assertThat(response.message()).isEqualTo("AI insights are disabled for this environment.");
+        assertThat(response.summary()).isNull();
+    }
+
+    @Test
+    void generationReturnsUnavailableWhenAiIsDisabledWithoutCallingProvider() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+        leadService = new LeadService(
+                leadRepository,
+                leadNoteRepository,
+                leadActivityRepository,
+                leadInsightRepository,
+                new AiProperties(false, "test-model", "test-key"),
+                aiInsightClient
+        );
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
+
+        LeadInsightResponse response = leadService.generateInsight(leadId);
+
+        assertThat(response.aiAvailable()).isFalse();
+        assertThat(response.message()).isEqualTo("AI insights are disabled for this environment.");
+        assertThat(response.message()).doesNotContain("test-key");
+        verify(aiInsightClient, never()).generate(any());
+    }
+
+    @Test
+    void generationReturnsUnavailableWhenApiKeyIsMissingWithoutCallingProvider() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+        leadService = new LeadService(
+                leadRepository,
+                leadNoteRepository,
+                leadActivityRepository,
+                leadInsightRepository,
+                new AiProperties(true, "test-model", ""),
+                aiInsightClient
+        );
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
+
+        LeadInsightResponse response = leadService.generateInsight(leadId);
+
+        assertThat(response.aiAvailable()).isFalse();
+        assertThat(response.message()).isEqualTo("AI insights are unavailable because OPENAI_API_KEY is not configured.");
+        assertThat(response.message()).doesNotContain("test-key");
+        verify(aiInsightClient, never()).generate(any());
+    }
+
+    @Test
+    void generationReturnsUnavailableWhenModelIsMissingWithoutCallingProvider() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+        leadService = new LeadService(
+                leadRepository,
+                leadNoteRepository,
+                leadActivityRepository,
+                leadInsightRepository,
+                new AiProperties(true, "", "test-key"),
+                aiInsightClient
+        );
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
+
+        LeadInsightResponse response = leadService.generateInsight(leadId);
+
+        assertThat(response.aiAvailable()).isFalse();
+        assertThat(response.message()).isEqualTo("AI insights are unavailable because BOB_AI_MODEL is not configured.");
+        assertThat(response.message()).doesNotContain("test-key");
+        verify(aiInsightClient, never()).generate(any());
+    }
+
+    @Test
+    void generatesAndPersistsLeadInsight() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+        LeadNote note = note(UUID.randomUUID(), lead, "Asked for a timeline next week.");
+        LeadActivity activity = activity(UUID.randomUUID(), lead, LeadActivityType.NOTE_ADDED, "Note added");
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of(note));
+        when(leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of(activity));
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
+        when(aiInsightClient.generate(org.mockito.ArgumentMatchers.contains("Asked for a timeline")))
+                .thenReturn(new AiGeneratedInsight(
+                        "Analytical Engines has a fresh conversation around timing.",
+                        "conversation is warming up",
+                        "Follow up to confirm timeline and decision owner.",
+                        "Do not let the lead go quiet for more than 2 days."
+                ));
+        when(leadInsightRepository.save(any(LeadInsight.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LeadInsightResponse response = leadService.generateInsight(leadId);
+
+        assertThat(response.aiAvailable()).isTrue();
+        assertThat(response.summary()).isEqualTo("Analytical Engines has a fresh conversation around timing.");
+        assertThat(response.statusRead()).isEqualTo("conversation is warming up");
+        assertThat(response.model()).isEqualTo("test-model");
+        verify(leadInsightRepository).save(any(LeadInsight.class));
     }
 
     private static Lead lead(UUID id, LeadStatus status) {
