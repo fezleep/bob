@@ -131,7 +131,7 @@ More detail: [docs/engineering-decisions.md](docs/engineering-decisions.md)
 Prerequisites:
 
 - Java 21
-- Maven 3.9+
+- Maven Wrapper included in `backend`
 - Node.js and npm
 - Docker Compose
 
@@ -145,7 +145,7 @@ Run the backend:
 
 ```bash
 cd backend
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 Run the frontend:
@@ -212,7 +212,7 @@ Backend:
 
 ```bash
 cd backend
-mvn test
+./mvnw test
 ```
 
 Frontend:

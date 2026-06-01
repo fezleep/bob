@@ -7,6 +7,14 @@ test("home page loads", async ({ page }) => {
   await expect(page.getByRole("button", { name: /open command palette/i })).toBeVisible();
 });
 
+test("about page loads", async ({ page }) => {
+  await page.goto("/about", { waitUntil: "domcontentloaded" });
+
+  await expect(
+    page.getByRole("heading", { name: /quiet software for lead work/i })
+  ).toBeVisible();
+});
+
 test("login and register pages load", async ({ page }) => {
   await page.goto("/login", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: /sign in to bob/i })).toBeVisible();
@@ -16,9 +24,11 @@ test("login and register pages load", async ({ page }) => {
 });
 
 test("protected pages redirect when unauthenticated", async ({ page }) => {
-  await page.goto("/workspace", { waitUntil: "domcontentloaded" });
+  for (const path of ["/workspace", "/pipeline", "/leads"]) {
+    await page.goto(path, { waitUntil: "domcontentloaded" });
 
-  await expect(page).toHaveURL(/\/login\?next=%2Fworkspace$/);
+    await expect(page).toHaveURL(new RegExp(`/login\\?next=${encodeURIComponent(path)}$`));
+  }
 });
 
 test("command palette trigger is present", async ({ page }) => {
@@ -41,8 +51,11 @@ test("mobile unauthenticated navigation exposes auth actions", async ({ page }) 
 
 test("command palette fits a mobile viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/", { waitUntil: "networkidle" });
-  await page.getByRole("button", { name: /open command palette/i }).click();
+  await page.goto("/", { waitUntil: "load" });
+  const trigger = page.getByRole("button", { name: /open command palette/i });
+
+  await expect(trigger).toBeEnabled();
+  await trigger.click();
 
   await expect(page.getByRole("dialog", { name: /command palette/i })).toBeVisible();
   await expect
