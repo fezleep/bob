@@ -273,6 +273,14 @@ export async function generateLeadInsightAction(
     };
   } catch (error) {
     if (error instanceof ApiError) {
+      if (error.status === 502) {
+        return {
+          fields: { leadId },
+          message: "Bob read generation failed. Try again in a moment.",
+          success: false,
+        };
+      }
+
       return {
         fields: { leadId },
         message: error.message,

@@ -20,6 +20,12 @@ npm run lint
 npm run build
 ```
 
+On unsupported WSL distros, install system Chromium and run Playwright with its executable path:
+
+```bash
+PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="$(which chromium)" npm run test:e2e
+```
+
 ## Current Scope
 
 - App shell with sidebar, top bar, and main content area

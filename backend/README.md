@@ -41,6 +41,7 @@ The backend uses environment variables with local defaults that match `docker-co
 | `BOB_AI_ENABLED` | `false` |
 | `BOB_AI_MODEL` | empty |
 | `OPENAI_API_KEY` | empty |
+| `BOB_AI_DEBUG_RESPONSE_SHAPE` | `false` |
 
 Use the Spring datasource variables when you need to override the full JDBC connection directly.
 
@@ -51,10 +52,12 @@ AI is off by default so local setup and CI do not require OpenAI credentials. To
 ```bash
 BOB_AI_ENABLED=true
 BOB_AI_MODEL=<model-available-to-your-openai-account>
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=<your-openai-api-key>
 ```
 
 If AI is disabled, `OPENAI_API_KEY` is empty, or `BOB_AI_MODEL` is empty, the API returns an unavailable state instead of generating an insight. If AI is disabled after insights already exist, saved insights can still be returned for display, but regeneration stays unavailable.
+
+For local provider debugging only, `BOB_AI_DEBUG_RESPONSE_SHAPE=true` logs a heavily sanitized and truncated provider response sample. Leave it unset or `false` in normal local runs, CI, dev, and production. The default parsing logs include only safe response metadata such as status, body length, top-level field names, and output/content item types.
 
 ## Run
 

@@ -213,10 +213,12 @@ To enable AI locally, set backend environment variables and restart the backend:
 ```bash
 BOB_AI_ENABLED=true
 BOB_AI_MODEL=<model-available-to-your-openai-account>
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=<your-openai-api-key>
 ```
 
 Never commit real API keys, never expose OpenAI keys with `NEXT_PUBLIC_` variables, and use different secrets for local, dev, and production environments. `BOB_AI_MODEL` must be set to a model available to your OpenAI account.
+
+For local-only provider diagnostics, set `BOB_AI_DEBUG_RESPONSE_SHAPE=true` temporarily. It is `false` by default and must stay disabled in CI, dev, and production; normal logs include only safe response shape metadata.
 
 AI in Bob is assistive, not autonomous. It does not change lead data or take actions for the user, and the output should not be treated as final business truth. If AI stays disabled, Bob still works normally; saved insights may still display if they were generated earlier.
 
