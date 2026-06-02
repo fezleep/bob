@@ -214,10 +214,12 @@ Para habilitar IA localmente, configure variaveis de ambiente no backend e reini
 ```bash
 BOB_AI_ENABLED=true
 BOB_AI_MODEL=<modelo-disponivel-na-sua-conta-openai>
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=<sua-chave-openai>
 ```
 
 Nunca commite chaves reais, nunca exponha chaves da OpenAI com variaveis `NEXT_PUBLIC_`, e use segredos diferentes para local, dev e producao. `BOB_AI_MODEL` precisa ser um modelo disponivel na sua conta da OpenAI.
+
+Para diagnostico local do provedor, use `BOB_AI_DEBUG_RESPONSE_SHAPE=true` temporariamente. O padrao e `false` e deve continuar desabilitado em CI, dev e producao; os logs normais incluem apenas metadados seguros do formato da resposta.
 
 A IA no bob e assistiva, nao autonoma. Ela nao altera dados do lead nem executa acoes pelo usuario, e a saida nao deve ser tratada como verdade final de negocio. Se a IA ficar desabilitada, o bob continua funcionando normalmente; insights salvos podem continuar aparecendo se ja tiverem sido gerados antes.
 

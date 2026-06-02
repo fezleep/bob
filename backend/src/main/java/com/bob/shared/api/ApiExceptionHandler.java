@@ -75,7 +75,7 @@ class ApiExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(ApiErrorResponse.of(
                 HttpStatus.BAD_GATEWAY.value(),
                 HttpStatus.BAD_GATEWAY.getReasonPhrase(),
-                "AI insight generation is temporarily unavailable."
+                "AI insight generation failed. Try again in a moment."
         ));
     }
 
