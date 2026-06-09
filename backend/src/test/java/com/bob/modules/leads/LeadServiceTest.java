@@ -458,10 +458,54 @@ class LeadServiceTest {
         ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
         verify(aiInsightClient).generate(promptCaptor.capture());
         assertThat(promptCaptor.getValue()).contains("Asked for a timeline next week.");
+        assertThat(promptCaptor.getValue()).contains("- nextFollowUpAt: none");
+        assertThat(promptCaptor.getValue()).contains("- followUpState: no_follow_up");
         assertThat(promptCaptor.getValue()).doesNotContain("ada@example.com");
         assertThat(promptCaptor.getValue()).doesNotContain("Authorization");
         assertThat(promptCaptor.getValue()).doesNotContain("OPENAI_API_KEY");
         verify(leadInsightRepository).save(any(LeadInsight.class));
+    }
+
+    @Test
+    void leadInsightPromptIncludesOverdueFollowUpContext() {
+        Lead lead = lead(
+                UUID.randomUUID(),
+                LeadStatus.CONTACTED,
+                OffsetDateTime.parse("2026-06-08T12:00:00Z")
+        );
+
+        String prompt = generatedPromptFor(lead);
+
+        assertThat(prompt).contains("- nextFollowUpAt: 2026-06-08T12:00Z");
+        assertThat(prompt).contains("- followUpState: overdue_follow_up");
+    }
+
+    @Test
+    void leadInsightPromptIncludesDueTodayFollowUpContext() {
+        Lead lead = lead(
+                UUID.randomUUID(),
+                LeadStatus.CONTACTED,
+                OffsetDateTime.parse("2026-06-09T20:00:00Z")
+        );
+
+        String prompt = generatedPromptFor(lead);
+
+        assertThat(prompt).contains("- nextFollowUpAt: 2026-06-09T20:00Z");
+        assertThat(prompt).contains("- followUpState: due_today");
+    }
+
+    @Test
+    void leadInsightPromptIncludesFutureScheduledFollowUpContext() {
+        Lead lead = lead(
+                UUID.randomUUID(),
+                LeadStatus.CONTACTED,
+                OffsetDateTime.parse("2026-06-10T13:00:00Z")
+        );
+
+        String prompt = generatedPromptFor(lead);
+
+        assertThat(prompt).contains("- nextFollowUpAt: 2026-06-10T13:00Z");
+        assertThat(prompt).contains("- followUpState: scheduled_future");
     }
 
     @Test
@@ -499,6 +543,26 @@ class LeadServiceTest {
 
         verify(aiInsightClient).generate(any());
         verify(leadInsightRepository, never()).save(any(LeadInsight.class));
+    }
+
+    private String generatedPromptFor(Lead lead) {
+        when(leadRepository.findById(lead.getId())).thenReturn(Optional.of(lead));
+        when(leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(lead.getId())).thenReturn(List.of());
+        when(leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(lead.getId())).thenReturn(List.of());
+        when(leadInsightRepository.findByLeadId(lead.getId())).thenReturn(Optional.empty());
+        when(aiInsightClient.generate(any())).thenReturn(new AiGeneratedInsight(
+                "Summary.",
+                "Status read.",
+                "Next action.",
+                ""
+        ));
+        when(leadInsightRepository.save(any(LeadInsight.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        leadService.generateInsight(lead.getId());
+
+        ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
+        verify(aiInsightClient).generate(promptCaptor.capture());
+        return promptCaptor.getValue();
     }
 
     private static Lead lead(UUID id, LeadStatus status) {
