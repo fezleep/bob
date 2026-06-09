@@ -288,6 +288,15 @@ class LeadService {
         context.append("- createdAt: ").append(lead.getCreatedAt()).append('\n');
         context.append("- updatedAt: ").append(lead.getUpdatedAt()).append('\n');
 
+        context.append("\nFollow-up\n");
+        context.append("- nextFollowUpAt: ")
+                .append(lead.getNextFollowUpAt() == null ? "none" : lead.getNextFollowUpAt())
+                .append('\n');
+        context.append("- followUpState: ")
+                .append(followUpState(lead.getNextFollowUpAt(), OffsetDateTime.now(clock)))
+                .append('\n');
+        context.append("- guidance: Use follow-up timing to shape the operational read, next action, and attention signal.\n");
+
         context.append("\nRecent notes\n");
         if (notes.isEmpty()) {
             context.append("- none\n");
@@ -317,6 +326,21 @@ class LeadService {
         return context.toString();
     }
 
+    private String followUpState(OffsetDateTime nextFollowUpAt, OffsetDateTime now) {
+        if (nextFollowUpAt == null) {
+            return "no_follow_up";
+        }
+
+        if (nextFollowUpAt.isBefore(now)) {
+            return "overdue_follow_up";
+        }
+        if (nextFollowUpAt.atZoneSameInstant(clock.getZone()).toLocalDate()
+                .isEqual(now.atZoneSameInstant(clock.getZone()).toLocalDate())) {
+            return "due_today";
+        }
+        return "scheduled_future";
+    }
+
     private String truncate(String value, int maxLength) {
         if (value == null) {
             return null;
@@ -333,22 +357,19 @@ class LeadService {
 
     private Optional<LeadAttentionItemResponse> attentionItem(Lead lead, OffsetDateTime now) {
         OffsetDateTime nextFollowUpAt = lead.getNextFollowUpAt();
-        if (nextFollowUpAt.isBefore(now)) {
-            return Optional.of(LeadAttentionItemResponse.from(
+        return switch (followUpState(nextFollowUpAt, now)) {
+            case "overdue_follow_up" -> Optional.of(LeadAttentionItemResponse.from(
                     lead,
                     LeadAttentionSignal.OVERDUE_FOLLOW_UP,
                     nextFollowUpAt
             ));
-        }
-        if (nextFollowUpAt.atZoneSameInstant(clock.getZone()).toLocalDate()
-                .isEqual(now.atZoneSameInstant(clock.getZone()).toLocalDate())) {
-            return Optional.of(LeadAttentionItemResponse.from(
+            case "due_today" -> Optional.of(LeadAttentionItemResponse.from(
                     lead,
                     LeadAttentionSignal.DUE_TODAY,
                     nextFollowUpAt
             ));
-        }
-        return Optional.empty();
+            default -> Optional.empty();
+        };
     }
 
     private static int urgencyRank(LeadAttentionSignal signal) {
