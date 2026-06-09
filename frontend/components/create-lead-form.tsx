@@ -1,19 +1,32 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useEffect, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { createLeadAction } from "@/app/leads/actions";
 import { initialCreateLeadFormState } from "@/app/leads/form-state";
 import { formatLeadStatus, statuses } from "@/lib/leads";
 
 export function CreateLeadForm() {
+  const timezoneOffsetRef = useRef<HTMLInputElement>(null);
   const [state, formAction] = useActionState(
     createLeadAction,
     initialCreateLeadFormState
   );
 
+  useEffect(() => {
+    if (timezoneOffsetRef.current) {
+      timezoneOffsetRef.current.value = String(new Date().getTimezoneOffset());
+    }
+  }, []);
+
   return (
     <form action={formAction} className="quiet-panel rounded-lg p-5 sm:p-6">
+      <input
+        ref={timezoneOffsetRef}
+        type="hidden"
+        name="timezoneOffset"
+        defaultValue=""
+      />
       <div>
         <p className="text-sm font-medium text-ink">Create lead</p>
         <p className="mt-1 text-sm leading-6 text-muted">
@@ -44,6 +57,13 @@ export function CreateLeadForm() {
           autoComplete="organization"
           defaultValue={state.fields.company}
           error={state.errors.company}
+        />
+        <FormField
+          label="Next follow-up"
+          name="nextFollowUpAt"
+          type="datetime-local"
+          defaultValue={state.fields.nextFollowUpAt}
+          error={state.errors.nextFollowUpAt}
         />
 
         <div>
@@ -81,7 +101,7 @@ export function CreateLeadForm() {
 
 type FormFieldProps = {
   label: string;
-  name: "name" | "email" | "company";
+  name: "name" | "email" | "company" | "nextFollowUpAt";
   type?: string;
   autoComplete?: string;
   defaultValue?: string;

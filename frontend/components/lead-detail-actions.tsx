@@ -6,14 +6,21 @@ import { useFormStatus } from "react-dom";
 import {
   addLeadNoteAction,
   changeLeadStatusAction,
+  updateLeadFollowUpAction,
   updateLeadAction,
 } from "@/app/leads/[id]/actions";
 import {
+  createInitialLeadFollowUpFormState,
   createInitialLeadNoteFormState,
   createInitialLeadStatusFormState,
   createInitialLeadUpdateFormState,
 } from "@/app/leads/[id]/form-state";
-import { formatLeadStatus, statuses, type LeadStatus } from "@/lib/leads";
+import {
+  formatLeadDateTime,
+  formatLeadStatus,
+  statuses,
+  type LeadStatus,
+} from "@/lib/leads";
 
 type LeadDetailActionsProps = {
   lead: {
@@ -22,12 +29,14 @@ type LeadDetailActionsProps = {
     email: string | null;
     company: string | null;
     status: LeadStatus;
+    nextFollowUpAt: string | null;
   };
 };
 
 export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
   const router = useRouter();
   const noteFormRef = useRef<HTMLFormElement>(null);
+  const timezoneOffsetRef = useRef<HTMLInputElement>(null);
 
   const [updateState, updateFormAction] = useActionState(
     updateLeadAction,
@@ -37,6 +46,7 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
       email: lead.email,
       company: lead.company,
       status: lead.status,
+      nextFollowUpAt: lead.nextFollowUpAt,
     })
   );
   const [statusState, statusFormAction] = useActionState(
@@ -46,16 +56,44 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
       status: lead.status,
     })
   );
+  const [followUpState, followUpFormAction] = useActionState(
+    updateLeadFollowUpAction,
+    createInitialLeadFollowUpFormState({
+      leadId: lead.id,
+      name: lead.name,
+      email: lead.email,
+      company: lead.company,
+      status: lead.status,
+      nextFollowUpAt: lead.nextFollowUpAt,
+    })
+  );
   const [noteState, noteFormAction] = useActionState(
     addLeadNoteAction,
     createInitialLeadNoteFormState(lead.id)
   );
 
   useEffect(() => {
-    if (updateState.success || statusState.success || noteState.success) {
+    if (
+      updateState.success ||
+      statusState.success ||
+      followUpState.success ||
+      noteState.success
+    ) {
       router.refresh();
     }
-  }, [noteState.success, router, statusState.success, updateState.success]);
+  }, [
+    followUpState.success,
+    noteState.success,
+    router,
+    statusState.success,
+    updateState.success,
+  ]);
+
+  useEffect(() => {
+    if (timezoneOffsetRef.current) {
+      timezoneOffsetRef.current.value = String(new Date().getTimezoneOffset());
+    }
+  }, []);
 
   useEffect(() => {
     if (noteState.success) {
@@ -84,6 +122,11 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
           className="rounded-lg border border-border/50 bg-elevated/[0.22] p-4 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset]"
         >
           <input type="hidden" name="leadId" value={lead.id} />
+          <input
+            type="hidden"
+            name="nextFollowUpAt"
+            value={lead.nextFollowUpAt ?? ""}
+          />
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm font-medium text-ink">Edit details</p>
             <InlineMessage message={updateState.message} success={updateState.success} />
@@ -124,6 +167,70 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
 
           <div className="mt-4 flex justify-end">
             <SubmitButton idleLabel="Save details" pendingLabel="Saving..." />
+          </div>
+        </form>
+
+        <form
+          action={followUpFormAction}
+          className="rounded-lg border border-border/50 bg-elevated/[0.18] p-4 shadow-[0_1px_0_rgb(255_255_255/0.025)_inset]"
+        >
+          <input type="hidden" name="leadId" value={lead.id} />
+          <input type="hidden" name="name" value={lead.name} />
+          <input type="hidden" name="email" value={lead.email ?? ""} />
+          <input type="hidden" name="company" value={lead.company ?? ""} />
+          <input type="hidden" name="status" value={lead.status} />
+          <input
+            ref={timezoneOffsetRef}
+            type="hidden"
+            name="timezoneOffset"
+            defaultValue=""
+          />
+          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-sm font-medium text-ink">Next follow-up</p>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                {lead.nextFollowUpAt
+                  ? `Currently set for ${formatLeadDateTime(lead.nextFollowUpAt)}.`
+                  : "No follow-up is scheduled yet."}
+              </p>
+            </div>
+            <InlineMessage
+              message={followUpState.message}
+              success={followUpState.success}
+            />
+          </div>
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
+            <div className="min-w-0 flex-1">
+              <FormField
+                label="Next follow-up"
+                name="nextFollowUpAt"
+                type="datetime-local"
+                defaultValue={followUpState.fields.nextFollowUpAt}
+                error={followUpState.errors.nextFollowUpAt}
+              />
+            </div>
+            <div className="flex flex-col gap-2 sm:pt-6 md:flex-row">
+              <SubmitButton
+                idleLabel="Update follow-up"
+                pendingLabel="Updating..."
+              />
+              <button
+                type="submit"
+                formNoValidate
+                onClick={(event) => {
+                  const form = event.currentTarget.form;
+                  const input = form?.elements.namedItem("nextFollowUpAt");
+
+                  if (input instanceof HTMLInputElement) {
+                    input.value = "";
+                  }
+                }}
+                className="focus-ring h-10 w-full rounded-md border border-border/65 bg-transparent px-3 text-sm font-medium text-muted transition duration-200 hover:border-border hover:text-ink active:scale-[0.99] sm:w-auto"
+              >
+                Clear follow-up
+              </button>
+            </div>
           </div>
         </form>
 
@@ -214,7 +321,7 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
 
 type FormFieldProps = {
   label: string;
-  name: "name" | "email" | "company";
+  name: "name" | "email" | "company" | "nextFollowUpAt";
   type?: string;
   autoComplete?: string;
   defaultValue?: string;

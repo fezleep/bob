@@ -9,6 +9,7 @@ import { ApiError } from "@/lib/api";
 import {
   formatActivityType,
   formatLeadDate,
+  formatLeadDateTime,
   formatLeadStatus,
   getLeadDetail,
   type LeadDetail,
@@ -102,6 +103,15 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       value: String(lead.notes.length),
       helper: lead.notes.length === 1 ? "one context marker" : "context markers",
     },
+    {
+      label: "Next follow-up",
+      value: lead.nextFollowUpAt
+        ? formatLeadDateTime(lead.nextFollowUpAt)
+        : "Not scheduled",
+      helper: lead.nextFollowUpAt
+        ? "planned next touch"
+        : "set one when timing is clear",
+    },
   ];
 
   return (
@@ -134,7 +144,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
               {lead.email ? ` - ${lead.email}` : ""}
             </p>
 
-            <div className="mt-7 grid gap-3 sm:grid-cols-3">
+            <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
               {signalStats.map((stat) => (
                 <DetailStat
                   key={stat.label}
@@ -189,13 +199,14 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       ) : null}
 
       <LeadDetailActions
-        key={`${lead.updatedAt}-${lead.notes.length}-${lead.status}`}
+        key={`${lead.updatedAt}-${lead.notes.length}-${lead.status}-${lead.nextFollowUpAt ?? "none"}`}
         lead={{
           id: lead.id,
           name: lead.name,
           email: lead.email,
           company: lead.company,
           status: lead.status,
+          nextFollowUpAt: lead.nextFollowUpAt,
         }}
       />
 
