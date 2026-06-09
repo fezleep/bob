@@ -81,10 +81,18 @@ export default async function WorkspacePage() {
   const activeLeads = leads.filter((lead) => activeStatuses.includes(lead.status));
   const qualifiedLeads = leads.filter((lead) => lead.status === "QUALIFIED");
   const movedRecently = leads.filter((lead) => daysSince(lead.updatedAt) <= 7);
+  const overdueFollowUps = attentionQueue.filter(
+    (item) => item.signal === "OVERDUE_FOLLOW_UP"
+  );
+  const dueTodayFollowUps = attentionQueue.filter(
+    (item) => item.signal === "DUE_TODAY"
+  );
   const totalPipeline = Math.max(leads.length, 1);
   const bobRead =
-    attentionQueue.length > 0
-      ? "bob noticed something worth revisiting"
+    overdueFollowUps.length > 0
+      ? "overdue follow-ups need a deliberate pass"
+      : dueTodayFollowUps.length > 0
+        ? "today's follow-ups are ready"
       : movedRecently.length > 0
         ? "one conversation is warming up"
         : "things feel quiet right now";
@@ -169,9 +177,14 @@ export default async function WorkspacePage() {
               {attentionQueue.length > 0
                 ? `${attentionQueue.length} lead${
                     attentionQueue.length === 1 ? "" : "s"
-                  } could use a deliberate follow-up.`
-                : "No lead is asking for immediate attention."}
+                  } need follow-up attention before the queue is clear.`
+                : "No overdue or due-today follow-up is waiting for action."}
             </p>
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              <AttentionCounter label="Total" value={attentionQueue.length} />
+              <AttentionCounter label="Overdue" value={overdueFollowUps.length} />
+              <AttentionCounter label="Today" value={dueTodayFollowUps.length} />
+            </div>
             <Link
               href="/leads"
               className="focus-ring warm-button mt-5 inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-medium transition duration-200 active:scale-[0.99]"
@@ -253,8 +266,8 @@ export default async function WorkspacePage() {
 }
 
 function AttentionQueueSection({ items }: { items: LeadAttentionItem[] }) {
-  const overdueCount = items.filter((item) => item.signal === "OVERDUE_FOLLOW_UP").length;
-  const dueTodayCount = items.filter((item) => item.signal === "DUE_TODAY").length;
+  const overdueItems = items.filter((item) => item.signal === "OVERDUE_FOLLOW_UP");
+  const dueTodayItems = items.filter((item) => item.signal === "DUE_TODAY");
 
   return (
     <section className="quiet-panel overflow-hidden rounded-lg">
@@ -265,70 +278,121 @@ function AttentionQueueSection({ items }: { items: LeadAttentionItem[] }) {
               Attention queue
             </p>
             <h2 className="mt-2 text-base font-medium text-ink">
-              Follow-ups that need action today
+              Follow-ups that need action
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-              Overdue follow-ups stay at the top, followed by conversations due
-              before the day ends.
+              Overdue work is separated from today&apos;s planned follow-ups so the
+              next pass through the queue is clear.
             </p>
           </div>
           <div className="flex gap-2">
-            <QueueStat label="Overdue" value={overdueCount} />
-            <QueueStat label="Today" value={dueTodayCount} />
+            <QueueStat label="Total" value={items.length} />
+            <QueueStat label="Overdue" value={overdueItems.length} />
+            <QueueStat label="Today" value={dueTodayItems.length} />
           </div>
         </div>
       </div>
 
       {items.length > 0 ? (
-        <div className="divide-y divide-border/50">
-          <div className="hidden grid-cols-[1.25fr_0.75fr_0.85fr_0.8fr_6.5rem] border-b border-border/55 bg-elevated/[0.14] px-4 py-3 text-xs font-medium text-faint md:grid">
-            <span>Lead</span>
-            <span>Status</span>
-            <span>Signal</span>
-            <span className="text-right">Follow-up</span>
-            <span className="text-right">Open</span>
-          </div>
-          {items.map((item) => (
-            <article
-              key={`${item.id}-${item.signal}-${item.relevantAt}`}
-              className="grid gap-3 px-4 py-4 transition duration-200 hover:bg-elevated/32 hover:shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] md:grid-cols-[1.25fr_0.75fr_0.85fr_0.8fr_6.5rem] md:items-center"
-            >
-              <div className="min-w-0">
-                <Link
-                  href={`/leads/${item.id}`}
-                  className="focus-ring block max-w-full truncate rounded-md text-sm font-medium text-ink transition duration-200 hover:text-accent"
-                >
-                  {item.name}
-                </Link>
-                <p className="mt-1 truncate text-sm leading-5 text-muted">
-                  {item.company || "No company yet"}
-                </p>
-              </div>
-              <div>
-                <StatusPill status={item.status} />
-              </div>
-              <div>
-                <AttentionSignalPill signal={item.signal} />
-              </div>
-              <p className="text-sm text-muted md:text-right">
-                {formatLeadDateTime(item.nextFollowUpAt)}
-              </p>
-              <Link
-                href={`/leads/${item.id}`}
-                className="focus-ring inline-flex h-8 items-center justify-center rounded-md border border-border/55 bg-elevated/30 px-3 text-sm text-muted transition duration-200 hover:border-accent/30 hover:bg-elevated/55 hover:text-ink md:justify-self-end"
-              >
-                Open
-              </Link>
-            </article>
-          ))}
+        <div className="space-y-5 p-4 sm:p-5">
+          <AttentionQueueGroup
+            title="Overdue"
+            description="Follow-ups that have passed their scheduled time."
+            items={overdueItems}
+          />
+          <AttentionQueueGroup
+            title="Due today"
+            description="Planned follow-ups still due before the day closes."
+            items={dueTodayItems}
+          />
         </div>
       ) : (
         <EmptyState
-          title="No leads need attention right now."
-          body="Overdue and due-today follow-ups will appear here when they are ready for action."
+          title="No follow-ups need attention right now."
+          body="Overdue and due-today conversations will appear here automatically when they are ready for review."
         />
       )}
     </section>
+  );
+}
+
+function AttentionCounter({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-md border border-border/55 bg-elevated/[0.2] px-3 py-2">
+      <p className="text-[0.68rem] font-medium uppercase tracking-[0.12em] text-faint">
+        {label}
+      </p>
+      <p className="mt-1 text-lg font-semibold tabular-nums text-ink">{value}</p>
+    </div>
+  );
+}
+
+function AttentionQueueGroup({
+  title,
+  description,
+  items,
+}: {
+  title: string;
+  description: string;
+  items: LeadAttentionItem[];
+}) {
+  if (items.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-border/50 bg-black/[0.08]">
+      <div className="border-b border-border/45 px-4 py-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm font-medium text-ink">{title}</p>
+          <p className="text-xs font-medium uppercase tracking-[0.12em] text-faint">
+            {items.length} lead{items.length === 1 ? "" : "s"}
+          </p>
+        </div>
+        <p className="mt-1 text-sm leading-5 text-muted">{description}</p>
+      </div>
+      <div className="divide-y divide-border/45">
+        {items.map((item) => (
+          <AttentionQueueItem
+            key={`${item.id}-${item.signal}-${item.relevantAt}`}
+            item={item}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AttentionQueueItem({ item }: { item: LeadAttentionItem }) {
+  return (
+    <article className="grid gap-3 px-4 py-4 transition duration-200 hover:bg-elevated/28 hover:shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] md:grid-cols-[1.35fr_0.75fr_0.82fr_0.85fr_7rem] md:items-center">
+      <div className="min-w-0">
+        <Link
+          href={`/leads/${item.id}`}
+          className="focus-ring block max-w-full truncate rounded-md text-sm font-medium text-ink transition duration-200 hover:text-accent"
+        >
+          {item.name}
+        </Link>
+        <p className="mt-1 truncate text-sm leading-5 text-muted">
+          {item.company || "No company yet"}
+        </p>
+      </div>
+      <div>
+        <StatusPill status={item.status} />
+      </div>
+      <div>
+        <AttentionSignalPill signal={item.signal} />
+      </div>
+      <p className="text-sm text-muted md:text-right">
+        {formatLeadDateTime(item.nextFollowUpAt)}
+      </p>
+      <Link
+        href={`/leads/${item.id}`}
+        className="focus-ring inline-flex h-8 items-center justify-center rounded-md border border-border/55 bg-elevated/30 px-3 text-sm text-muted transition duration-200 hover:border-accent/30 hover:bg-elevated/55 hover:text-ink md:justify-self-end"
+      >
+        Review lead
+      </Link>
+    </article>
   );
 }
 

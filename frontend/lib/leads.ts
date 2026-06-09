@@ -235,7 +235,52 @@ export function formatActivityType(type: LeadActivityType | null | undefined) {
 export function formatLeadAttentionSignal(
   signal: LeadAttentionSignal | null | undefined
 ) {
-  return titleizeEnum(signal);
+  switch (signal) {
+    case "OVERDUE_FOLLOW_UP":
+      return "Overdue";
+    case "DUE_TODAY":
+      return "Due today";
+    case "STALE":
+      return "Stale";
+    default:
+      return titleizeEnum(signal);
+  }
+}
+
+export type LeadFollowUpState = "OVERDUE" | "DUE_TODAY" | "SCHEDULED" | "NONE";
+
+export function getLeadFollowUpState(
+  nextFollowUpAt: string | null | undefined,
+  now = new Date()
+): LeadFollowUpState {
+  if (!nextFollowUpAt) {
+    return "NONE";
+  }
+
+  const followUpAt = new Date(nextFollowUpAt);
+
+  if (followUpAt.getTime() < now.getTime()) {
+    return "OVERDUE";
+  }
+
+  if (followUpAt.toDateString() === now.toDateString()) {
+    return "DUE_TODAY";
+  }
+
+  return "SCHEDULED";
+}
+
+export function formatLeadFollowUpState(state: LeadFollowUpState) {
+  switch (state) {
+    case "OVERDUE":
+      return "Overdue";
+    case "DUE_TODAY":
+      return "Due today";
+    case "SCHEDULED":
+      return "Scheduled";
+    case "NONE":
+      return "No follow-up scheduled";
+  }
 }
 
 export function formatLeadDate(value: string) {
