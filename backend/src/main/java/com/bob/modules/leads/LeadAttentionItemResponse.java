@@ -3,27 +3,25 @@ package com.bob.modules.leads;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
-record LeadResponse(
+record LeadAttentionItemResponse(
         UUID id,
         String name,
-        String email,
         String company,
         LeadStatus status,
+        LeadAttentionSignal signal,
         OffsetDateTime nextFollowUpAt,
-        OffsetDateTime createdAt,
-        OffsetDateTime updatedAt
+        OffsetDateTime relevantAt
 ) {
 
-    static LeadResponse from(Lead lead) {
-        return new LeadResponse(
+    static LeadAttentionItemResponse from(Lead lead, LeadAttentionSignal signal, OffsetDateTime relevantAt) {
+        return new LeadAttentionItemResponse(
                 lead.getId(),
                 lead.getName(),
-                lead.getEmail(),
                 lead.getCompany(),
                 lead.getStatus(),
+                signal,
                 lead.getNextFollowUpAt(),
-                lead.getCreatedAt(),
-                lead.getUpdatedAt()
+                relevantAt
         );
     }
 }

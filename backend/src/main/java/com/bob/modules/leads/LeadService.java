@@ -12,8 +12,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -30,6 +33,7 @@ class LeadService {
     private final LeadInsightRepository leadInsightRepository;
     private final AiProperties aiProperties;
     private final AiInsightClient aiInsightClient;
+    private final Clock clock;
 
     LeadService(
             LeadRepository leadRepository,
@@ -37,7 +41,8 @@ class LeadService {
             LeadActivityRepository leadActivityRepository,
             LeadInsightRepository leadInsightRepository,
             AiProperties aiProperties,
-            AiInsightClient aiInsightClient
+            AiInsightClient aiInsightClient,
+            Clock clock
     ) {
         this.leadRepository = leadRepository;
         this.leadNoteRepository = leadNoteRepository;
@@ -45,6 +50,7 @@ class LeadService {
         this.leadInsightRepository = leadInsightRepository;
         this.aiProperties = aiProperties;
         this.aiInsightClient = aiInsightClient;
+        this.clock = clock;
     }
 
     @Transactional
@@ -53,7 +59,8 @@ class LeadService {
                 request.name().trim(),
                 normalizeOptional(request.email()),
                 normalizeOptional(request.company()),
-                request.status()
+                request.status(),
+                request.nextFollowUpAt()
         );
 
         Lead savedLead = leadRepository.save(lead);
@@ -92,11 +99,28 @@ class LeadService {
                 request.name().trim(),
                 normalizeOptional(request.email()),
                 normalizeOptional(request.company()),
-                request.status()
+                request.status(),
+                request.nextFollowUpAt()
         );
         addStatusChangedActivityIfNeeded(lead, previousStatus, request.status());
 
         return LeadResponse.from(lead);
+    }
+
+    @Transactional(readOnly = true)
+    List<LeadAttentionItemResponse> attentionQueue() {
+        OffsetDateTime now = OffsetDateTime.now(clock);
+        return leadRepository.findByNextFollowUpAtIsNotNull().stream()
+                .map(lead -> attentionItem(lead, now))
+                .flatMap(Optional::stream)
+                .sorted((left, right) -> {
+                    int urgencyComparison = Integer.compare(urgencyRank(left.signal()), urgencyRank(right.signal()));
+                    if (urgencyComparison != 0) {
+                        return urgencyComparison;
+                    }
+                    return left.relevantAt().compareTo(right.relevantAt());
+                })
+                .toList();
     }
 
     @Transactional
@@ -305,6 +329,34 @@ class LeadService {
             return null;
         }
         return value.trim();
+    }
+
+    private Optional<LeadAttentionItemResponse> attentionItem(Lead lead, OffsetDateTime now) {
+        OffsetDateTime nextFollowUpAt = lead.getNextFollowUpAt();
+        if (nextFollowUpAt.isBefore(now)) {
+            return Optional.of(LeadAttentionItemResponse.from(
+                    lead,
+                    LeadAttentionSignal.OVERDUE_FOLLOW_UP,
+                    nextFollowUpAt
+            ));
+        }
+        if (nextFollowUpAt.atZoneSameInstant(clock.getZone()).toLocalDate()
+                .isEqual(now.atZoneSameInstant(clock.getZone()).toLocalDate())) {
+            return Optional.of(LeadAttentionItemResponse.from(
+                    lead,
+                    LeadAttentionSignal.DUE_TODAY,
+                    nextFollowUpAt
+            ));
+        }
+        return Optional.empty();
+    }
+
+    private static int urgencyRank(LeadAttentionSignal signal) {
+        return switch (signal) {
+            case OVERDUE_FOLLOW_UP -> 0;
+            case DUE_TODAY -> 1;
+            case STALE -> 2;
+        };
     }
 
     private static boolean present(String value) {
