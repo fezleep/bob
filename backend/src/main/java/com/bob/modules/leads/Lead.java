@@ -41,14 +41,18 @@ class Lead {
     @Column(name = "updated_at", nullable = false)
     private OffsetDateTime updatedAt;
 
+    @Column(name = "next_follow_up_at")
+    private OffsetDateTime nextFollowUpAt;
+
     protected Lead() {
     }
 
-    Lead(String name, String email, String company, LeadStatus status) {
+    Lead(String name, String email, String company, LeadStatus status, OffsetDateTime nextFollowUpAt) {
         this.name = name;
         this.email = email;
         this.company = company;
         this.status = status;
+        this.nextFollowUpAt = nextFollowUpAt;
     }
 
     @PrePersist
@@ -83,11 +87,12 @@ class Lead {
         return status;
     }
 
-    void update(String name, String email, String company, LeadStatus status) {
+    void update(String name, String email, String company, LeadStatus status, OffsetDateTime nextFollowUpAt) {
         this.name = name;
         this.email = email;
         this.company = company;
         this.status = status;
+        this.nextFollowUpAt = nextFollowUpAt;
         this.updatedAt = OffsetDateTime.now();
     }
 
@@ -102,5 +107,9 @@ class Lead {
 
     OffsetDateTime getUpdatedAt() {
         return updatedAt;
+    }
+
+    OffsetDateTime getNextFollowUpAt() {
+        return nextFollowUpAt;
     }
 }

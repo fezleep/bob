@@ -43,6 +43,11 @@ class LeadController {
         return leadService.list(page, size, sort, direction, status);
     }
 
+    @GetMapping("/attention")
+    List<LeadAttentionItemResponse> attentionQueue() {
+        return leadService.attentionQueue();
+    }
+
     @GetMapping("/{id}")
     LeadResponse get(@PathVariable UUID id) {
         return leadService.get(id);

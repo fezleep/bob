@@ -47,12 +47,14 @@ class LeadControllerTest {
     void createsLead() throws Exception {
         UUID id = UUID.randomUUID();
         OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-13T10:00:00Z");
+        OffsetDateTime nextFollowUpAt = OffsetDateTime.parse("2026-06-09T20:00:00Z");
         LeadResponse response = new LeadResponse(
                 id,
                 "Ada Lovelace",
                 "ada@example.com",
                 "Analytical Engines",
                 LeadStatus.NEW,
+                nextFollowUpAt,
                 createdAt,
                 createdAt
         );
@@ -66,7 +68,8 @@ class LeadControllerTest {
                                 "Ada Lovelace",
                                 "ada@example.com",
                                 "Analytical Engines",
-                                LeadStatus.NEW
+                                LeadStatus.NEW,
+                                nextFollowUpAt
                         ))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(id.toString()))
@@ -74,6 +77,7 @@ class LeadControllerTest {
                 .andExpect(jsonPath("$.email").value("ada@example.com"))
                 .andExpect(jsonPath("$.company").value("Analytical Engines"))
                 .andExpect(jsonPath("$.status").value("NEW"))
+                .andExpect(jsonPath("$.nextFollowUpAt").value("2026-06-09T20:00:00Z"))
                 .andExpect(jsonPath("$.createdAt").value("2026-05-13T10:00:00Z"));
 
         ArgumentCaptor<CreateLeadRequest> requestCaptor = ArgumentCaptor.forClass(CreateLeadRequest.class);
@@ -83,6 +87,7 @@ class LeadControllerTest {
         assertThat(requestCaptor.getValue().email()).isEqualTo("ada@example.com");
         assertThat(requestCaptor.getValue().company()).isEqualTo("Analytical Engines");
         assertThat(requestCaptor.getValue().status()).isEqualTo(LeadStatus.NEW);
+        assertThat(requestCaptor.getValue().nextFollowUpAt()).isEqualTo(nextFollowUpAt);
     }
 
     @Test
@@ -112,6 +117,7 @@ class LeadControllerTest {
                                 null,
                                 "Compiler Co",
                                 LeadStatus.QUALIFIED,
+                                null,
                                 now,
                                 now
                         )
@@ -144,16 +150,47 @@ class LeadControllerTest {
     }
 
     @Test
+    void listsAttentionQueue() throws Exception {
+        UUID id = UUID.randomUUID();
+        OffsetDateTime nextFollowUpAt = OffsetDateTime.parse("2026-06-08T12:00:00Z");
+
+        when(leadService.attentionQueue()).thenReturn(List.of(new LeadAttentionItemResponse(
+                id,
+                "Ada Lovelace",
+                "Analytical Engines",
+                LeadStatus.CONTACTED,
+                LeadAttentionSignal.OVERDUE_FOLLOW_UP,
+                nextFollowUpAt,
+                nextFollowUpAt
+        )));
+
+        mockMvc.perform(get("/api/leads/attention"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(id.toString()))
+                .andExpect(jsonPath("$[0].name").value("Ada Lovelace"))
+                .andExpect(jsonPath("$[0].company").value("Analytical Engines"))
+                .andExpect(jsonPath("$[0].status").value("CONTACTED"))
+                .andExpect(jsonPath("$[0].signal").value("OVERDUE_FOLLOW_UP"))
+                .andExpect(jsonPath("$[0].nextFollowUpAt").value("2026-06-08T12:00:00Z"))
+                .andExpect(jsonPath("$[0].relevantAt").value("2026-06-08T12:00:00Z"));
+
+        verify(leadService).attentionQueue();
+    }
+
+    @Test
     void updatesLead() throws Exception {
         UUID id = UUID.randomUUID();
         OffsetDateTime createdAt = OffsetDateTime.parse("2026-05-13T10:00:00Z");
         OffsetDateTime updatedAt = OffsetDateTime.parse("2026-05-13T11:00:00Z");
+        OffsetDateTime nextFollowUpAt = OffsetDateTime.parse("2026-06-10T13:00:00Z");
         LeadResponse response = new LeadResponse(
                 id,
                 "Ada Byron",
                 "ada.byron@example.com",
                 "Numbers Ltd",
                 LeadStatus.CONTACTED,
+                nextFollowUpAt,
                 createdAt,
                 updatedAt
         );
@@ -167,7 +204,8 @@ class LeadControllerTest {
                                 "Ada Byron",
                                 "ada.byron@example.com",
                                 "Numbers Ltd",
-                                LeadStatus.CONTACTED
+                                LeadStatus.CONTACTED,
+                                nextFollowUpAt
                         ))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(id.toString()))
@@ -175,6 +213,7 @@ class LeadControllerTest {
                 .andExpect(jsonPath("$.email").value("ada.byron@example.com"))
                 .andExpect(jsonPath("$.company").value("Numbers Ltd"))
                 .andExpect(jsonPath("$.status").value("CONTACTED"))
+                .andExpect(jsonPath("$.nextFollowUpAt").value("2026-06-10T13:00:00Z"))
                 .andExpect(jsonPath("$.updatedAt").value("2026-05-13T11:00:00Z"));
 
         ArgumentCaptor<UpdateLeadRequest> requestCaptor = ArgumentCaptor.forClass(UpdateLeadRequest.class);
@@ -184,6 +223,7 @@ class LeadControllerTest {
         assertThat(requestCaptor.getValue().email()).isEqualTo("ada.byron@example.com");
         assertThat(requestCaptor.getValue().company()).isEqualTo("Numbers Ltd");
         assertThat(requestCaptor.getValue().status()).isEqualTo(LeadStatus.CONTACTED);
+        assertThat(requestCaptor.getValue().nextFollowUpAt()).isEqualTo(nextFollowUpAt);
     }
 
     @Test
@@ -196,6 +236,7 @@ class LeadControllerTest {
                 null,
                 "Compiler Co",
                 LeadStatus.CONTACTED,
+                null,
                 now,
                 now
         );
