@@ -6,8 +6,11 @@ export type CreateLeadFormState = {
     email?: string;
     company?: string;
     status: LeadStatus;
+    nextFollowUpAt?: string;
   };
-  errors: Partial<Record<"name" | "email" | "company" | "status", string>>;
+  errors: Partial<
+    Record<"name" | "email" | "company" | "status" | "nextFollowUpAt", string>
+  >;
   message?: string;
 };
 
