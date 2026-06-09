@@ -4,12 +4,17 @@ import { LeadWorkspace } from "@/components/lead-workspace";
 import { StatusPill } from "@/components/status-pill";
 import {
   formatActivityType,
+  formatLeadAttentionSignal,
   formatLeadDate,
+  formatLeadDateTime,
   getAllLeads,
+  getLeadAttentionQueue,
   getLeadActivities,
   statuses,
   type Lead,
   type LeadActivity,
+  type LeadAttentionItem,
+  type LeadAttentionSignal,
   type LeadStatus,
 } from "@/lib/leads";
 import { requireAuthToken } from "@/lib/server-auth";
@@ -22,7 +27,6 @@ type ActivityWithLead = LeadActivity & {
 };
 
 const activeStatuses: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED"];
-const attentionStatuses: LeadStatus[] = ["NEW", "CONTACTED"];
 
 const statusCopy: Record<LeadStatus, string> = {
   NEW: "Fresh conversations waiting for a first move.",
@@ -65,19 +69,21 @@ async function getRecentActivities(leads: Lead[], authToken: string) {
 
 export default async function WorkspacePage() {
   const authToken = await requireAuthToken();
-  const leads = await getAllLeads({
-    sort: "updatedAt",
-    direction: "desc",
-    authToken,
-  });
+  const [leads, attentionQueue] = await Promise.all([
+    getAllLeads({
+      sort: "updatedAt",
+      direction: "desc",
+      authToken,
+    }),
+    getLeadAttentionQueue(authToken),
+  ]);
   const recentActivities = await getRecentActivities(leads, authToken);
   const activeLeads = leads.filter((lead) => activeStatuses.includes(lead.status));
-  const attentionLeads = leads.filter((lead) => attentionStatuses.includes(lead.status));
   const qualifiedLeads = leads.filter((lead) => lead.status === "QUALIFIED");
   const movedRecently = leads.filter((lead) => daysSince(lead.updatedAt) <= 7);
   const totalPipeline = Math.max(leads.length, 1);
   const bobRead =
-    attentionLeads.length > 0
+    attentionQueue.length > 0
       ? "bob noticed something worth revisiting"
       : movedRecently.length > 0
         ? "one conversation is warming up"
@@ -86,11 +92,11 @@ export default async function WorkspacePage() {
   const summaryCards = [
     {
       label: "Needs attention",
-      value: attentionLeads.length,
+      value: attentionQueue.length,
       detail:
-        attentionLeads.length > 0
-          ? `${attentionLeads[0].company || attentionLeads[0].name} should not sit too long.`
-          : "Nothing urgent is waiting for a reply.",
+        attentionQueue.length > 0
+          ? `${attentionQueue[0].company || attentionQueue[0].name} has a follow-up ready.`
+          : "No follow-up is waiting for action.",
     },
     {
       label: "Qualified leads",
@@ -160,9 +166,9 @@ export default async function WorkspacePage() {
             </p>
             <p className="mt-3 text-sm font-medium text-ink">{bobRead}.</p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              {attentionLeads.length > 0
-                ? `${attentionLeads.length} lead${
-                    attentionLeads.length === 1 ? "" : "s"
+              {attentionQueue.length > 0
+                ? `${attentionQueue.length} lead${
+                    attentionQueue.length === 1 ? "" : "s"
                   } could use a deliberate follow-up.`
                 : "No lead is asking for immediate attention."}
             </p>
@@ -193,6 +199,8 @@ export default async function WorkspacePage() {
           </article>
         ))}
       </section>
+
+      <AttentionQueueSection items={attentionQueue} />
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(20rem,0.9fr)]">
         <PipelineOverview leads={leads} totalPipeline={totalPipeline} />
@@ -241,6 +249,113 @@ export default async function WorkspacePage() {
         />
       </section>
     </div>
+  );
+}
+
+function AttentionQueueSection({ items }: { items: LeadAttentionItem[] }) {
+  const overdueCount = items.filter((item) => item.signal === "OVERDUE_FOLLOW_UP").length;
+  const dueTodayCount = items.filter((item) => item.signal === "DUE_TODAY").length;
+
+  return (
+    <section className="quiet-panel overflow-hidden rounded-lg">
+      <div className="border-b border-border/60 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+              Attention queue
+            </p>
+            <h2 className="mt-2 text-base font-medium text-ink">
+              Follow-ups that need action today
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+              Overdue follow-ups stay at the top, followed by conversations due
+              before the day ends.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <QueueStat label="Overdue" value={overdueCount} />
+            <QueueStat label="Today" value={dueTodayCount} />
+          </div>
+        </div>
+      </div>
+
+      {items.length > 0 ? (
+        <div className="divide-y divide-border/50">
+          <div className="hidden grid-cols-[1.25fr_0.75fr_0.85fr_0.8fr_6.5rem] border-b border-border/55 bg-elevated/[0.14] px-4 py-3 text-xs font-medium text-faint md:grid">
+            <span>Lead</span>
+            <span>Status</span>
+            <span>Signal</span>
+            <span className="text-right">Follow-up</span>
+            <span className="text-right">Open</span>
+          </div>
+          {items.map((item) => (
+            <article
+              key={`${item.id}-${item.signal}-${item.relevantAt}`}
+              className="grid gap-3 px-4 py-4 transition duration-200 hover:bg-elevated/32 hover:shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] md:grid-cols-[1.25fr_0.75fr_0.85fr_0.8fr_6.5rem] md:items-center"
+            >
+              <div className="min-w-0">
+                <Link
+                  href={`/leads/${item.id}`}
+                  className="focus-ring block max-w-full truncate rounded-md text-sm font-medium text-ink transition duration-200 hover:text-accent"
+                >
+                  {item.name}
+                </Link>
+                <p className="mt-1 truncate text-sm leading-5 text-muted">
+                  {item.company || "No company yet"}
+                </p>
+              </div>
+              <div>
+                <StatusPill status={item.status} />
+              </div>
+              <div>
+                <AttentionSignalPill signal={item.signal} />
+              </div>
+              <p className="text-sm text-muted md:text-right">
+                {formatLeadDateTime(item.nextFollowUpAt)}
+              </p>
+              <Link
+                href={`/leads/${item.id}`}
+                className="focus-ring inline-flex h-8 items-center justify-center rounded-md border border-border/55 bg-elevated/30 px-3 text-sm text-muted transition duration-200 hover:border-accent/30 hover:bg-elevated/55 hover:text-ink md:justify-self-end"
+              >
+                Open
+              </Link>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <EmptyState
+          title="No leads need attention right now."
+          body="Overdue and due-today follow-ups will appear here when they are ready for action."
+        />
+      )}
+    </section>
+  );
+}
+
+function QueueStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="min-w-20 rounded-md border border-border/55 bg-black/[0.12] px-3 py-2 text-right">
+      <p className="text-xs font-medium text-faint">{label}</p>
+      <p className="mt-1 text-xl font-semibold tabular-nums text-ink">{value}</p>
+    </div>
+  );
+}
+
+function AttentionSignalPill({ signal }: { signal: LeadAttentionSignal }) {
+  const styles: Record<LeadAttentionSignal, string> = {
+    OVERDUE_FOLLOW_UP: "border-red-300/24 bg-red-400/[0.08] text-red-100",
+    DUE_TODAY: "border-accent/28 bg-accent/[0.08] text-ink",
+    STALE: "border-border/70 bg-elevated/45 text-muted",
+  };
+
+  return (
+    <span
+      className={`inline-flex h-6 max-w-full items-center rounded-full border px-2.5 text-xs font-medium shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] ${styles[signal]}`}
+    >
+      <span className="truncate whitespace-nowrap">
+        {formatLeadAttentionSignal(signal)}
+      </span>
+    </span>
   );
 }
 
