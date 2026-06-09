@@ -40,8 +40,24 @@ export type Lead = {
   email: string | null;
   company: string | null;
   status: LeadStatus;
+  nextFollowUpAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type LeadAttentionSignal =
+  | "OVERDUE_FOLLOW_UP"
+  | "DUE_TODAY"
+  | "STALE";
+
+export type LeadAttentionItem = {
+  id: string;
+  name: string;
+  company: string | null;
+  status: LeadStatus;
+  signal: LeadAttentionSignal;
+  nextFollowUpAt: string;
+  relevantAt: string;
 };
 
 type LeadListResponse = {
@@ -72,6 +88,7 @@ export type CreateLeadInput = {
   email?: string | null;
   company?: string | null;
   status: LeadStatus;
+  nextFollowUpAt?: string | null;
 };
 
 export type UpdateLeadInput = {
@@ -79,6 +96,7 @@ export type UpdateLeadInput = {
   email?: string | null;
   company?: string | null;
   status: LeadStatus;
+  nextFollowUpAt?: string | null;
 };
 
 export async function getLeads(options: GetLeadsOptions = {}) {
@@ -139,6 +157,10 @@ export async function updateLead(id: string, input: UpdateLeadInput, authToken?:
 
 export async function getLeadById(id: string, authToken?: string) {
   return apiFetch<Lead>(`/api/leads/${id}`, { authToken });
+}
+
+export async function getLeadAttentionQueue(authToken?: string) {
+  return apiFetch<LeadAttentionItem[]>("/api/leads/attention", { authToken });
 }
 
 export async function getLeadDetail(id: string, authToken?: string): Promise<LeadDetail> {
@@ -210,10 +232,26 @@ export function formatActivityType(type: LeadActivityType | null | undefined) {
   return titleizeEnum(type);
 }
 
+export function formatLeadAttentionSignal(
+  signal: LeadAttentionSignal | null | undefined
+) {
+  return titleizeEnum(signal);
+}
+
 export function formatLeadDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
     day: "numeric",
     year: "numeric",
+  }).format(new Date(value));
+}
+
+export function formatLeadDateTime(value: string) {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(new Date(value));
 }
