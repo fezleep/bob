@@ -16,9 +16,12 @@ import {
   createInitialLeadUpdateFormState,
 } from "@/app/leads/[id]/form-state";
 import {
+  formatLeadFollowUpState,
   formatLeadDateTime,
   formatLeadStatus,
+  getLeadFollowUpState,
   statuses,
+  type LeadFollowUpState,
   type LeadStatus,
 } from "@/lib/leads";
 
@@ -71,6 +74,7 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
     addLeadNoteAction,
     createInitialLeadNoteFormState(lead.id)
   );
+  const followUpDisplayState = getLeadFollowUpState(lead.nextFollowUpAt);
 
   useEffect(() => {
     if (
@@ -187,11 +191,14 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
           />
           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
             <div>
-              <p className="text-sm font-medium text-ink">Next follow-up</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm font-medium text-ink">Next follow-up</p>
+                <FollowUpStatePill state={followUpDisplayState} />
+              </div>
               <p className="mt-1 text-sm leading-6 text-muted">
                 {lead.nextFollowUpAt
-                  ? `Currently set for ${formatLeadDateTime(lead.nextFollowUpAt)}.`
-                  : "No follow-up is scheduled yet."}
+                  ? `Scheduled for ${formatLeadDateTime(lead.nextFollowUpAt)}.`
+                  : "No follow-up scheduled. Set one when there is a clear next touch."}
               </p>
             </div>
             <InlineMessage
@@ -203,7 +210,7 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start">
             <div className="min-w-0 flex-1">
               <FormField
-                label="Next follow-up"
+                label="Follow-up date and time"
                 name="nextFollowUpAt"
                 type="datetime-local"
                 defaultValue={followUpState.fields.nextFollowUpAt}
@@ -316,6 +323,23 @@ export function LeadDetailActions({ lead }: LeadDetailActionsProps) {
         </details>
       </div>
     </section>
+  );
+}
+
+function FollowUpStatePill({ state }: { state: LeadFollowUpState }) {
+  const styles: Record<LeadFollowUpState, string> = {
+    OVERDUE: "border-red-300/24 bg-red-400/[0.08] text-red-100",
+    DUE_TODAY: "border-accent/28 bg-accent/[0.08] text-ink",
+    SCHEDULED: "border-border/65 bg-elevated/45 text-muted",
+    NONE: "border-border/55 bg-black/[0.12] text-faint",
+  };
+
+  return (
+    <span
+      className={`inline-flex h-6 items-center rounded-full border px-2.5 text-xs font-medium shadow-[0_1px_0_rgb(255_255_255/0.025)_inset] ${styles[state]}`}
+    >
+      {formatLeadFollowUpState(state)}
+    </span>
   );
 }
 

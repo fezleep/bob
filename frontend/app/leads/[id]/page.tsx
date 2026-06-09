@@ -8,9 +8,11 @@ import { StatusPill } from "@/components/status-pill";
 import { ApiError } from "@/lib/api";
 import {
   formatActivityType,
+  formatLeadFollowUpState,
   formatLeadDate,
   formatLeadDateTime,
   formatLeadStatus,
+  getLeadFollowUpState,
   getLeadDetail,
   type LeadDetail,
 } from "@/lib/leads";
@@ -85,6 +87,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   const lastMovementAt = lead.activities[0]?.createdAt ?? lead.updatedAt;
   const latestActivity = lead.activities[0];
   const latestNote = lead.notes[0];
+  const followUpState = getLeadFollowUpState(lead.nextFollowUpAt);
   const signalStats = [
     {
       label: "Status",
@@ -108,9 +111,7 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
       value: lead.nextFollowUpAt
         ? formatLeadDateTime(lead.nextFollowUpAt)
         : "Not scheduled",
-      helper: lead.nextFollowUpAt
-        ? "planned next touch"
-        : "set one when timing is clear",
+      helper: formatLeadFollowUpState(followUpState),
     },
   ];
 
