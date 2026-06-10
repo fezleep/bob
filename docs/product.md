@@ -32,9 +32,18 @@ The first version should make it easy to:
 - organize leads by status
 - see recent activity
 - keep notes and context close to the lead
-- decide what needs a follow-up
+- schedule the next follow-up
+- see which follow-ups need attention today
 
 The MVP should avoid broad CRM features until the basic lead workflow feels strong.
+
+## Current Product Flow
+
+The current workflow is lead -> follow-up -> attention queue -> Bob read context.
+
+A user can create or edit a lead with a next follow-up time. Overdue and due-today follow-ups appear in the workspace attention queue so the near-term work is visible without turning the whole product into a task manager. When the user asks for a Bob read, the backend includes the follow-up state in the AI prompt so the generated summary, operational read, next action, and attention signal reflect that timing.
+
+Bob read remains assistive. It does not create tasks, change lead status, schedule follow-ups, or take action for the user.
 
 ## Design Direction
 
@@ -55,10 +64,10 @@ Design principles:
 
 AI in bob should be discreet.
 
-Useful examples for later:
+Useful directions:
 
 - summarizing a lead timeline
-- suggesting a follow-up note
+- suggesting a follow-up note or next step
 - extracting structured data from a conversation
 - identifying stale leads
 - drafting a short next step

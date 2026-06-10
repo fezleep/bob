@@ -35,7 +35,10 @@ PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH="$(which chromium)" npm run test:e2e
 ## Current Scope
 
 - App shell with sidebar, top bar, and main content area
-- Initial routes for `/`, `/leads`, and `/leads/[id]`
+- Routes for `/`, `/about`, `/login`, `/register`, `/workspace`, `/pipeline`, `/leads`, and `/leads/[id]`
 - Lead list and detail data loaded from the backend API
+- Lead create/edit forms with optional next follow-up timing
+- Workspace attention queue for overdue and due-today follow-ups
+- Bob read display and user-triggered generation through the backend
 - Dark-first CSS variable tokens in `app/globals.css`
 - JWT authentication persisted in an HTTP-only cookie

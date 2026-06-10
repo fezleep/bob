@@ -14,7 +14,7 @@ Portuguese version: [README-pt-BR.md](README-pt-BR.md)
 
 bob is an operational workspace for people who need to track leads without fighting a heavy CRM.
 
-The product brings lead records, filters, contextual search, a kanban pipeline, lead details, notes, activity history, quick actions, and a command palette into one focused interface. It is not trying to be every sales tool at once. The idea is simpler: show what is happening, what needs attention, and where the next action should happen.
+The product brings lead records, filters, contextual search, a kanban pipeline, lead details, notes, activity history, follow-up scheduling, an attention queue, quick actions, and a command palette into one focused interface. It is not trying to be every sales tool at once. The idea is simpler: show what is happening, what needs attention, and where the next action should happen.
 
 For recruiters, bob is a portfolio project with real product thinking. For tech leads, it is a fullstack codebase with clear boundaries, pragmatic architecture, and room to grow without pretending that future infrastructure already exists.
 
@@ -59,7 +59,9 @@ Implemented today:
 - lead management with create, list, detail, update, and status change flows
 - kanban pipeline grouped by lead status
 - lead detail actions, notes, and activity history
-- Bob read: backend-only AI lead summary, operational read, next action, and attention signal
+- follow-up scheduling on lead create and edit flows
+- workspace attention queue for overdue and due-today follow-ups
+- Bob read: backend-only AI lead summary, operational read, next action, and attention signal, with follow-up timing included in the prompt context
 - lead intelligence signals such as recent, quiet, and needs-attention views
 - intelligent filters and contextual search across lead data
 - command palette for quick navigation and product actions
@@ -103,7 +105,7 @@ The backend is a modular monolith. That is intentional. For this stage, a single
 Current backend areas:
 
 - `modules/auth`: registration, login, current-user lookup, BCrypt password hashing, JWT issuing
-- `modules/leads`: lead workflow, notes, activity history, status transitions, and persisted lead AI insights
+- `modules/leads`: lead workflow, follow-up dates, attention queue, notes, activity history, status transitions, and persisted lead AI insights
 - `modules/ai`: OpenAI-backed insight generation client and AI configuration
 - `modules/system`: application status
 - `shared/api`: API errors and exception handling
@@ -198,6 +200,8 @@ The default JWT secret is only for local development. Use a strong secret outsid
 
 Bob's first AI-assisted workflow is the lead detail "Bob read". It is generated only after an authenticated user asks for it and includes a short summary, operational read, suggested next action, and attention signal when relevant.
 
+The current product flow is deliberately simple: a lead can carry a next follow-up date, overdue and due-today follow-ups appear in the workspace attention queue, and Bob read uses that follow-up state as context when generating its operational read. AI does not schedule, clear, or update follow-ups for the user.
+
 The OpenAI API key stays backend-only. The frontend calls Bob's backend, and the backend calls OpenAI. If AI is disabled, `OPENAI_API_KEY` is missing, or `BOB_AI_MODEL` is missing, the API returns an unavailable state instead of pretending an insight was generated.
 
 Default local and CI setup runs without AI:
@@ -261,7 +265,7 @@ GitHub Actions runs backend and frontend validation on pull requests. Playwright
 Near-term product work:
 
 - workspace ownership
-- lead ownership and follow-up dates
+- lead ownership
 - richer lead actions
 - saved views for common operational filters
 - stronger command palette behavior for navigation and lead actions
