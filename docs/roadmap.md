@@ -19,15 +19,19 @@ Implemented today:
 - protected frontend workspace, pipeline, leads, and lead detail routes
 - lead CRUD APIs
 - lead status changes
+- lead follow-up timestamp on create and update flows
 - lead notes
 - lead activity history
+- attention queue API for overdue and due-today follow-ups
 - on-demand Bob read for lead summary, operational read, next action, and attention signal
+- follow-up timing included in Bob read prompt context
 - backend-only OpenAI integration with disabled state when AI is off, no API key is configured, or no model is configured
 - system status and actuator health endpoints
 - workspace, leads, lead detail, pipeline, home, about, login, and register frontend routes
 - intelligent lead filters
 - contextual search across core lead fields
 - command palette trigger and navigation
+- workspace attention queue UI for overdue and due-today follow-ups
 - GitHub Actions CI validation
 - Playwright smoke test foundation
 
@@ -39,7 +43,7 @@ Planned:
 
 - workspace or organization ownership model
 - lead ownership
-- follow-up dates
+- follow-up reminders and notification behavior
 - richer lead actions
 - import flow for lead lists
 - saved views for repeated workflows
@@ -83,6 +87,8 @@ Implemented:
 - latest persisted Bob read per lead
 - explicit user-triggered AI generation
 - backend-only OpenAI API usage
+- follow-up state included in the AI prompt context
+- attention queue driven by overdue and due-today follow-ups
 
 Current limitations:
 
@@ -91,13 +97,14 @@ Current limitations:
 - no Redis cache
 - no RabbitMQ jobs
 - no streaming or chat UI
+- no automated follow-up notifications or reminders
 
 Planned:
 
 - insight history and user feedback on generated reads
 - stale lead detection
 - follow-up draft support
-- context cards that explain why a lead needs attention
+- richer context cards that explain why a lead needs attention beyond follow-up timing
 
 AI should continue to be assistive and explicit. It should not perform autonomous lead updates.
 

@@ -4,7 +4,7 @@ This document records product and engineering choices behind bob.
 
 ## 1. Build a Product Surface, Not Only Endpoints
 
-bob includes frontend, backend, database, local infrastructure, and documentation in one repository. The product starts with operational workflows for leads, pipeline, notes, activity, filters, search, and command palette navigation.
+bob includes frontend, backend, database, local infrastructure, and documentation in one repository. The product starts with operational workflows for leads, pipeline, follow-up scheduling, attention queue triage, notes, activity, filters, search, and command palette navigation.
 
 Reason: reviewers can evaluate product judgment, backend boundaries, frontend execution, and delivery discipline together.
 
@@ -40,11 +40,17 @@ Reason: technical hardening should support the product experience instead of ove
 
 ## 7. Add AI Only Behind a Concrete Workflow
 
-Bob now includes one AI-assisted workflow: a lead detail "Bob read" generated on demand from the lead profile, notes, and recent activity. The OpenAI API key is backend-only, AI is disabled by default, and `BOB_AI_MODEL` must be configured explicitly to a model available for the environment's OpenAI account. Missing configuration returns an honest unavailable state without calling the provider.
+Bob now includes one AI-assisted workflow: a lead detail "Bob read" generated on demand from the lead profile, follow-up state, notes, and recent activity. The OpenAI API key is backend-only, AI is disabled by default, and `BOB_AI_MODEL` must be configured explicitly to a model available for the environment's OpenAI account. Missing configuration returns an honest unavailable state without calling the provider.
 
 Reason: bob should remain useful without AI, and AI should assist the user's operational decision instead of taking over. Persisting only the latest insight keeps the feature product-real without introducing chat, streaming, queues, or autonomous actions.
 
-## 8. Avoid Premature Infrastructure
+## 8. Keep Attention Queue Request-Driven
+
+Follow-up dates are stored on leads, and the workspace attention queue is calculated from overdue and due-today follow-ups when requested.
+
+Reason: this gives the product a real operational loop without introducing background jobs, queues, reminder delivery, or notification infrastructure before the workflow proves it needs them.
+
+## 9. Avoid Premature Infrastructure
 
 Current infrastructure is Docker Compose for PostgreSQL plus GitHub Actions validation. Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes remain future work.
 
@@ -59,7 +65,9 @@ Reason: unnecessary services would make local review harder and weaken the credi
 - BCrypt password hashing
 - Flyway migrations for schema evolution
 - backend-only OpenAI integration for on-demand lead insights
+- follow-up state included in Bob read prompt context
 - disabled/unavailable AI behavior when AI is off, no API key is configured, or no model is configured
+- backend attention queue behavior for overdue and due-today follow-ups
 - typed frontend data structures and API access
 - auth-aware frontend API handling
 - frontend lint and build scripts
@@ -74,6 +82,7 @@ Reason: unnecessary services would make local review harder and weaken the credi
 - production deployment automation
 - Redis
 - RabbitMQ
+- background follow-up reminder jobs or notification delivery
 - AI chat UI, streaming responses, or autonomous lead actions
 - Prometheus, Grafana, or OpenTelemetry
 - AWS, Terraform, or Kubernetes

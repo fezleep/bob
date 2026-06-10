@@ -14,7 +14,7 @@ Versão em inglês: [README.md](README.md)
 
 bob é um workspace operacional para acompanhar leads sem precisar entrar direto em um CRM pesado.
 
-Na prática, ele junta cadastro de leads, filtros, busca contextual, pipeline kanban, detalhes do lead, notas, histórico de atividades, ações rápidas e command palette em uma experiência só. A ideia não é tentar ser todas as ferramentas de vendas ao mesmo tempo. A ideia é mostrar o que está acontecendo, o que precisa de atenção e qual deve ser o próximo movimento.
+Na prática, ele junta cadastro de leads, filtros, busca contextual, pipeline kanban, detalhes do lead, notas, histórico de atividades, agendamento de follow-up, fila de atenção, ações rápidas e command palette em uma experiência só. A ideia não é tentar ser todas as ferramentas de vendas ao mesmo tempo. A ideia é mostrar o que está acontecendo, o que precisa de atenção e qual deve ser o próximo movimento.
 
 Para recrutadores, bob é um projeto de portfólio com pensamento de produto. Para tech leads, é uma base fullstack com separação clara entre frontend e backend, arquitetura pragmática e espaço para crescer sem fingir que o roadmap já está pronto.
 
@@ -59,7 +59,9 @@ Implementado hoje:
 - gestão de leads com criação, listagem, detalhe, edição e mudança de status
 - pipeline kanban agrupado por status do lead
 - ações no detalhe do lead, notas e histórico de atividades
-- Bob read: resumo de lead com IA no backend, leitura operacional, proximo passo e sinal de atencao
+- agendamento de follow-up na criação e edição de leads
+- fila de atenção no workspace para follow-ups atrasados ou previstos para hoje
+- Bob read: resumo de lead com IA no backend, leitura operacional, proximo passo e sinal de atencao, com contexto de follow-up no prompt
 - sinais de inteligência para leads recentes, parados e que precisam de atenção
 - filtros inteligentes e busca contextual nos dados dos leads
 - command palette para navegação e ações rápidas
@@ -104,7 +106,7 @@ O backend hoje é um monolito modular. Essa escolha é proposital. Para esta fas
 Áreas atuais do backend:
 
 - `modules/auth`: registro, login, usuário atual, hash de senha com BCrypt e emissão de JWT
-- `modules/leads`: fluxo de leads, notas, histórico de atividades, transições de status e insights de lead persistidos
+- `modules/leads`: fluxo de leads, datas de follow-up, fila de atenção, notas, histórico de atividades, transições de status e insights de lead persistidos
 - `modules/ai`: cliente de geração de insight com OpenAI e configuração de IA
 - `modules/system`: status da aplicação
 - `shared/api`: erros de API e tratamento de exceções
@@ -199,6 +201,8 @@ O secret padrão serve só para desenvolvimento local. Fora de demo local, use u
 
 O primeiro fluxo com IA do bob e o "Bob read" no detalhe do lead. Ele so e gerado quando um usuario autenticado pede e inclui resumo curto, leitura operacional, proximo passo sugerido e sinal de atencao quando fizer sentido.
 
+O fluxo atual do produto e propositalmente simples: um lead pode ter uma proxima data de follow-up, follow-ups atrasados ou previstos para hoje aparecem na fila de atencao do workspace, e o Bob read usa esse estado como contexto para gerar a leitura operacional. A IA nao agenda, limpa nem atualiza follow-ups pelo usuario.
+
 A chave da OpenAI fica apenas no backend. O frontend chama o backend do bob, e o backend chama a OpenAI. Se a IA estiver desabilitada, se `OPENAI_API_KEY` estiver ausente ou se `BOB_AI_MODEL` nao estiver configurado, a API retorna um estado indisponivel em vez de fingir que um insight foi gerado.
 
 O setup local e o CI rodam sem IA por padrao:
@@ -262,7 +266,7 @@ O GitHub Actions roda validação de backend e frontend em pull requests. Os tes
 Próximos passos de produto:
 
 - ownership de workspace
-- responsável e datas de follow-up por lead
+- responsável por lead
 - ações mais ricas no lead
 - views salvas para filtros operacionais comuns
 - command palette mais forte para navegação e ações

@@ -67,6 +67,16 @@ From `/backend`:
 ./mvnw spring-boot:run
 ```
 
+## Current API Scope
+
+- Auth: register, login, and current-user lookup
+- Leads: create, list, detail, update, and status change
+- Lead context: notes and activity timeline
+- Follow-ups: optional next follow-up timestamp on lead create/update
+- Attention queue: overdue and due-today follow-ups at `GET /api/leads/attention`
+- Bob read: latest saved insight lookup and user-triggered generation
+- System: `/api/status` and `/actuator/health`
+
 ## Test and build
 
 ```bash

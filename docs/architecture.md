@@ -26,7 +26,7 @@ The frontend communicates with the backend through HTTP APIs. The database is on
 The backend is a modular monolith. Current package areas:
 
 - `com.bob.modules.auth`: user registration, login, current-user lookup, BCrypt password hashing, JWT issuing
-- `com.bob.modules.leads`: lead records, status transitions, notes, activities, persisted lead insights, controllers, services, repositories, and DTOs
+- `com.bob.modules.leads`: lead records, status transitions, follow-up dates, attention queue, notes, activities, persisted lead insights, controllers, services, repositories, and DTOs
 - `com.bob.modules.ai`: AI configuration and the backend-only OpenAI client for operational lead insights
 - `com.bob.modules.system`: application status endpoint
 - `com.bob.shared.api`: consistent API error response and exception handling
@@ -53,6 +53,7 @@ Current API areas:
 - `POST /api/auth/login`
 - `GET /api/auth/me`
 - `/api/leads`
+- `GET /api/leads/attention`
 - `/api/leads/{id}`
 - `/api/leads/{id}/status`
 - `/api/leads/{id}/notes`
@@ -86,12 +87,13 @@ Current migrations cover:
 - lead activities
 - users
 - latest generated lead insight per lead
+- lead next follow-up timestamp
 
 Schema changes should stay explicit, reviewable, and tied to the backend behavior that requires them.
 
 ## AI Boundary
 
-The lead detail "Bob read" is Bob's first AI-assisted feature. The frontend never receives an OpenAI key and never calls OpenAI directly. Authenticated users call Bob's backend, and the backend builds a small lead context from lead name, company, status, timestamps, notes, and recent activity before calling the OpenAI Responses API. JWT tokens, headers, environment variables, credentials, and internal secrets are not included in the prompt.
+The lead detail "Bob read" is Bob's first AI-assisted feature. The frontend never receives an OpenAI key and never calls OpenAI directly. Authenticated users call Bob's backend, and the backend builds a small lead context from lead name, company, status, timestamps, next follow-up timing, notes, and recent activity before calling the OpenAI Responses API. JWT tokens, headers, environment variables, credentials, and internal secrets are not included in the prompt.
 
 AI configuration is environment-driven:
 
@@ -100,6 +102,12 @@ AI configuration is environment-driven:
 - `OPENAI_API_KEY`, no default
 
 If AI is disabled, the API key is missing, or the model is missing, the backend returns a clear unavailable state and generation requests do not call OpenAI. Provider failures are returned as safe generic errors without raw provider details, prompts, headers, or secrets. Insights are assistive only: they summarize context and suggest a next action, but they do not mutate lead workflow state, perform autonomous actions, or represent final business truth.
+
+## Follow-Up and Attention Flow
+
+Leads can store an optional `nextFollowUpAt` timestamp through the create and update API flows. The workspace attention queue reads leads with follow-up dates and returns only overdue or due-today items, ordered by urgency and relevant timestamp. Future scheduled follow-ups stay out of the queue until they become due.
+
+The flow is intentionally synchronous and request-driven: lead -> follow-up date -> attention queue -> Bob read context. There are no background jobs, notifications, queues, or autonomous AI updates in this branch.
 
 ## Local Infrastructure
 
