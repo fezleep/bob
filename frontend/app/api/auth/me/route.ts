@@ -30,10 +30,12 @@ export async function GET() {
     });
   } catch (error) {
     if (error instanceof ApiError) {
+      const status = error.status || 503;
+
       return NextResponse.json(
         { message: error.message, fields: error.fields },
         {
-          status: error.status || 500,
+          status,
           headers: {
             "Cache-Control": "no-store",
           },

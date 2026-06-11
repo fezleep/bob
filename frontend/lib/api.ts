@@ -48,11 +48,21 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   }
 
   const url = isBrowserRequest ? path : `${apiBaseUrl?.replace(/\/$/, "")}${path}`;
-  const response = await fetch(url, {
-    ...fetchOptions,
-    headers,
-    cache: "no-store",
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(url, {
+      ...fetchOptions,
+      headers,
+      cache: "no-store",
+    });
+  } catch (error) {
+    if (error instanceof TypeError) {
+      throw new ApiError("The API is unavailable. Please try again later.", 0);
+    }
+
+    throw error;
+  }
 
   if (!response.ok) {
     let errorBody: ApiErrorBody | null = null;

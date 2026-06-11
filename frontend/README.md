@@ -19,6 +19,8 @@ Use one canonical frontend domain in production so the `bob_token` auth cookie i
 
 Set `BOB_AUTH_COOKIE_DOMAIN` only when using a custom/root domain and intentionally sharing auth across subdomains, for example `.example.com`. Keep `BOB_AUTH_JWT_SECRET` stable across backend deploys, and keep the JWT expiration positive and reasonable.
 
+If production appears to loop back to login, first confirm the backend and database are available. A paused backend or paused Postgres service can prevent session validation even when the frontend cookie is correct. See [../docs/production-recovery.md](../docs/production-recovery.md).
+
 ## Checks
 
 ```bash
