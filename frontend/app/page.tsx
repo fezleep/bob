@@ -55,7 +55,7 @@ const capabilities = [
   { label: "Follow-up engine", state: "Implemented" },
   { label: "Attention queue", state: "Implemented" },
   { label: "Production diagnostics", state: "Implemented" },
-  { label: "OpenAPI docs", state: "Planned" },
+  { label: "OpenAPI docs", state: "Implemented" },
   { label: "Redis or async jobs", state: "Roadmap" },
 ];
 

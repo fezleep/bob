@@ -9,6 +9,7 @@ Spring Boot backend for bob.
 - Maven
 - PostgreSQL
 - Flyway
+- springdoc OpenAPI
 
 ## Local prerequisites
 
@@ -76,6 +77,19 @@ From `/backend`:
 - Attention queue: overdue and due-today follow-ups at `GET /api/leads/attention`
 - Bob read: latest saved insight lookup and user-triggered generation
 - System: `/api/status` and `/actuator/health`
+- API docs: Swagger UI and OpenAPI JSON
+
+## API documentation
+
+When the backend is running locally:
+
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+In production, use the deployed backend origin with the same paths:
+
+- Swagger UI: `<backend-origin>/swagger-ui/index.html`
+- OpenAPI JSON: `<backend-origin>/v3/api-docs`
 
 ## Test and build
 
@@ -96,6 +110,12 @@ Application status:
 
 ```bash
 curl http://localhost:8080/api/status
+```
+
+OpenAPI document:
+
+```bash
+curl http://localhost:8080/v3/api-docs
 ```
 
 Production recovery and deployment troubleshooting:

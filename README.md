@@ -174,6 +174,11 @@ curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/status
 ```
 
+API documentation:
+
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
 Production recovery and deployment troubleshooting:
 [docs/production-recovery.md](docs/production-recovery.md)
 

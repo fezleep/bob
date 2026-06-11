@@ -119,6 +119,13 @@ Expected results:
 - `/actuator/health` returns HTTP 200 with status `UP`.
 - `/api/status` returns HTTP 200 with app name, status `ok`, and version.
 
+API documentation uses conventional Spring Boot springdoc paths on the deployed backend origin:
+
+- Swagger UI: `http://<oracle-vm-public-ip>:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://<oracle-vm-public-ip>:8080/v3/api-docs`
+
+If you later put HTTPS and a custom domain in front of the backend, keep the same paths on that backend origin.
+
 ## Connect Vercel Frontend
 
 In the Vercel project settings, set:

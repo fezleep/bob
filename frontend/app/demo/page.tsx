@@ -46,7 +46,7 @@ const capabilities = [
   ["Follow-up engine", "Implemented"],
   ["Attention queue", "Implemented"],
   ["Production diagnostics", "Implemented"],
-  ["OpenAPI", "Planned"],
+  ["OpenAPI", "Implemented"],
   ["Redis or async jobs", "Roadmap"],
 ];
 
