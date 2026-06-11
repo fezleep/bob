@@ -40,6 +40,7 @@ export function AppShell({
   const pathname = usePathname();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [signedIn, setSignedIn] = useState(initialSignedIn);
+  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   const activeSection =
     navItems.find((item) =>
       item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
@@ -62,9 +63,15 @@ export function AppShell({
         });
 
         setSignedIn(response.ok);
+        setSessionMessage(
+          response.status === 503
+            ? "Unable to validate session because the backend is not reachable."
+            : null
+        );
       } catch {
         if (!controller.signal.aborted) {
           setSignedIn(false);
+          setSessionMessage("Unable to validate session because the backend is not reachable.");
         }
       }
     }
@@ -270,6 +277,14 @@ export function AppShell({
         </header>
 
         <main className="mx-auto w-full max-w-6xl px-4 py-7 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+          {sessionMessage ? (
+            <div
+              role="status"
+              className="mb-5 rounded-md border border-border/70 bg-elevated/55 px-3 py-2 text-sm text-muted"
+            >
+              {sessionMessage}
+            </div>
+          ) : null}
           {children}
         </main>
       </div>

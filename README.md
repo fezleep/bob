@@ -174,6 +174,9 @@ curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/status
 ```
 
+Production recovery and deployment troubleshooting:
+[docs/production-recovery.md](docs/production-recovery.md)
+
 ## authentication
 
 bob has local authentication implemented.

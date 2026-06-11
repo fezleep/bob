@@ -98,6 +98,9 @@ Application status:
 curl http://localhost:8080/api/status
 ```
 
+Production recovery and deployment troubleshooting:
+[../docs/production-recovery.md](../docs/production-recovery.md)
+
 Flyway migration:
 
 ```bash
