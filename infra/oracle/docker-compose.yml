@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bob-oracle-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bob}
+      POSTGRES_USER: ${POSTGRES_USER:-bob}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-replace-with-a-strong-database-password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    container_name: bob-oracle-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      SERVER_PORT: ${SERVER_PORT:-8080}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/bob}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-bob}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-replace-with-a-strong-database-password}
+      BOB_AUTH_JWT_SECRET: ${BOB_AUTH_JWT_SECRET:-replace-with-a-long-random-jwt-secret-at-least-32-characters}
+      BOB_AUTH_JWT_EXPIRATION_MINUTES: ${BOB_AUTH_JWT_EXPIRATION_MINUTES:-480}
+      BOB_APP_VERSION: ${BOB_APP_VERSION:-0.1.0}
+      BOB_AI_ENABLED: ${BOB_AI_ENABLED:-false}
+      BOB_AI_MODEL: ${BOB_AI_MODEL:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      BOB_AI_DEBUG_RESPONSE_SHAPE: ${BOB_AI_DEBUG_RESPONSE_SHAPE:-false}
+    ports:
+      - "${BACKEND_PORT:-8080}:${SERVER_PORT:-8080}"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:$${SERVER_PORT:-8080}/actuator/health | grep -q 'UP'"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+
+volumes:
+  postgres-data:

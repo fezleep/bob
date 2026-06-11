@@ -101,6 +101,9 @@ curl http://localhost:8080/api/status
 Production recovery and deployment troubleshooting:
 [../docs/production-recovery.md](../docs/production-recovery.md)
 
+Oracle Cloud Always Free backend and PostgreSQL deployment:
+[../docs/oracle-deployment.md](../docs/oracle-deployment.md)
+
 Flyway migration:
 
 ```bash

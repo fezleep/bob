@@ -177,6 +177,9 @@ curl http://localhost:8080/api/status
 Production recovery and deployment troubleshooting:
 [docs/production-recovery.md](docs/production-recovery.md)
 
+Oracle Cloud Always Free deployment foundation:
+[docs/oracle-deployment.md](docs/oracle-deployment.md)
+
 ## authentication
 
 bob has local authentication implemented.
@@ -314,6 +317,7 @@ More docs:
 
 - [Architecture](docs/architecture.md)
 - [Engineering decisions](docs/engineering-decisions.md)
+- [Oracle deployment](docs/oracle-deployment.md)
 - [Product direction](docs/product.md)
 - [Roadmap](docs/roadmap.md)
 - [Brand notes](docs/brand.md)
