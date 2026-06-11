@@ -31,6 +31,27 @@ test("protected pages redirect when unauthenticated", async ({ page }) => {
   }
 });
 
+test("logout GET does not clear the auth cookie", async ({ page, baseURL }) => {
+  const appUrl = baseURL ?? "http://127.0.0.1:3001";
+
+  await page.context().addCookies([
+    {
+      name: "bob_token",
+      value: "prefetch-safe-token",
+      url: appUrl,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+
+  await page.goto("/logout", { waitUntil: "domcontentloaded" });
+
+  const cookies = await page.context().cookies(appUrl);
+  expect(cookies.find((cookie) => cookie.name === "bob_token")?.value).toBe(
+    "prefetch-safe-token"
+  );
+});
+
 test("command palette trigger is present", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 

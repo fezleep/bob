@@ -14,6 +14,22 @@ const navItems = [
   { href: "/about", label: "About" },
 ];
 
+function LogoutButton({
+  className,
+  formClassName,
+}: {
+  className: string;
+  formClassName?: string;
+}) {
+  return (
+    <form action="/logout" method="post" className={formClassName}>
+      <button type="submit" className={className}>
+        Logout
+      </button>
+    </form>
+  );
+}
+
 export function AppShell({
   children,
   initialSignedIn = false,
@@ -126,12 +142,7 @@ export function AppShell({
 
         <div className="relative mt-5 border-t border-border/45 pt-4">
           {signedIn ? (
-            <Link
-              href="/logout"
-              className="focus-ring flex h-9 items-center rounded-md px-2 text-sm text-muted transition hover:bg-elevated/45 hover:text-ink"
-            >
-              Logout
-            </Link>
+            <LogoutButton className="focus-ring flex h-9 w-full items-center rounded-md px-2 text-left text-sm text-muted transition hover:bg-elevated/45 hover:text-ink" />
           ) : (
             <div className="grid grid-cols-2 gap-2">
               <Link
@@ -206,12 +217,10 @@ export function AppShell({
               </button>
               <div className="hidden size-7 rounded-full border border-accent/25 bg-elevated/75 shadow-[0_1px_0_rgb(255_255_255/0.04)_inset] sm:block" />
               {signedIn ? (
-                <Link
-                  href="/logout"
-                  className="focus-ring hidden h-8 items-center rounded-md border border-border/65 px-3 text-xs font-medium text-faint transition hover:border-accent/34 hover:text-ink sm:flex"
-                >
-                  Logout
-                </Link>
+                <LogoutButton
+                  formClassName="hidden sm:block"
+                  className="focus-ring flex h-8 items-center rounded-md border border-border/65 px-3 text-xs font-medium text-faint transition hover:border-accent/34 hover:text-ink"
+                />
               ) : null}
             </div>
           </div>
@@ -240,12 +249,7 @@ export function AppShell({
             })}
             <span className="mx-0.5 h-5 w-px bg-border/55" aria-hidden="true" />
             {signedIn ? (
-              <Link
-                href="/logout"
-                className="focus-ring rounded-md border border-border/65 bg-elevated/25 px-2.5 py-1.5 text-xs font-medium text-muted transition duration-200 hover:border-accent/34 hover:text-ink"
-              >
-                Logout
-              </Link>
+              <LogoutButton className="focus-ring rounded-md border border-border/65 bg-elevated/25 px-2.5 py-1.5 text-xs font-medium text-muted transition duration-200 hover:border-accent/34 hover:text-ink" />
             ) : (
               <>
                 <Link
