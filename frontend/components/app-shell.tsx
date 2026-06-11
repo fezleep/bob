@@ -8,6 +8,7 @@ import { CommandPalette } from "@/components/command-palette";
 
 const navItems = [
   { href: "/", label: "Home" },
+  { href: "/demo", label: "Demo" },
   { href: "/workspace", label: "Workspace" },
   { href: "/pipeline", label: "Pipeline" },
   { href: "/leads", label: "Leads" },
