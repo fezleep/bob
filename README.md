@@ -174,8 +174,16 @@ curl http://localhost:8080/actuator/health
 curl http://localhost:8080/api/status
 ```
 
+API documentation:
+
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
 Production recovery and deployment troubleshooting:
 [docs/production-recovery.md](docs/production-recovery.md)
+
+Oracle Cloud Always Free deployment foundation:
+[docs/oracle-deployment.md](docs/oracle-deployment.md)
 
 ## authentication
 
@@ -314,6 +322,7 @@ More docs:
 
 - [Architecture](docs/architecture.md)
 - [Engineering decisions](docs/engineering-decisions.md)
+- [Oracle deployment](docs/oracle-deployment.md)
 - [Product direction](docs/product.md)
 - [Roadmap](docs/roadmap.md)
 - [Brand notes](docs/brand.md)
