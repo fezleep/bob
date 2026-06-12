@@ -8,6 +8,10 @@ const primaryActions = [
     primary: true,
   },
   {
+    href: "/capabilities",
+    label: "System capabilities",
+  },
+  {
     href: "/workspace",
     label: "Open workspace",
   },
@@ -103,10 +107,10 @@ export default function Home() {
                 View demo workspace
               </Link>
               <Link
-                href="/about"
+                href="/capabilities"
                 className="focus-ring inline-flex h-11 items-center justify-center rounded-md border border-border/65 bg-elevated/30 px-4 text-sm font-medium text-muted transition duration-200 hover:border-accent/34 hover:bg-elevated/55 hover:text-ink"
               >
-                About this project
+                System capabilities
               </Link>
             </div>
           </div>
