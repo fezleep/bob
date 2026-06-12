@@ -8,6 +8,11 @@ import { formatLeadStatus, getAllLeads, type Lead } from "@/lib/leads";
 const navigationItems = [
   { label: "Home", href: "/", helper: "Return to the product overview" },
   { label: "Demo workspace", href: "/demo", helper: "View Bob with sample data" },
+  {
+    label: "Capabilities",
+    href: "/capabilities",
+    helper: "See implemented, prepared, and planned system capabilities",
+  },
   { label: "Workspace", href: "/workspace", helper: "Open the operating workspace" },
   { label: "Pipeline", href: "/pipeline", helper: "Review the active pipeline" },
   { label: "Leads", href: "/leads", helper: "Search and manage leads" },
