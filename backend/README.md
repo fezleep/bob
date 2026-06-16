@@ -124,6 +124,9 @@ Production recovery and deployment troubleshooting:
 Oracle Cloud Always Free backend and PostgreSQL deployment:
 [../docs/oracle-deployment.md](../docs/oracle-deployment.md)
 
+Render + Neon backend and PostgreSQL deployment:
+[../docs/render-neon-deployment.md](../docs/render-neon-deployment.md)
+
 Flyway migration:
 
 ```bash

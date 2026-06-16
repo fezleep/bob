@@ -33,6 +33,15 @@ Set these in the backend hosting environment:
 
 The backend owns database access, Flyway migration execution, JWT validation, and operational APIs.
 
+## Deployment Alternatives
+
+Bob currently documents two practical deployment paths:
+
+- Oracle Cloud Always Free VM with Dockerized backend and PostgreSQL: [oracle-deployment.md](oracle-deployment.md)
+- Render Web Service with Neon Free Postgres: [render-neon-deployment.md](render-neon-deployment.md)
+
+If Oracle account creation is blocked by credit-card requirements, use Render + Neon as the no-credit-card recovery or redeploy path. The frontend still runs on Vercel and still needs `NEXT_PUBLIC_API_BASE_URL` to point at the active backend origin.
+
 ## Verify Backend Health
 
 From a terminal or HTTP client, call the deployed backend origin:
