@@ -185,6 +185,9 @@ Production recovery and deployment troubleshooting:
 Oracle Cloud Always Free deployment foundation:
 [docs/oracle-deployment.md](docs/oracle-deployment.md)
 
+Render + Neon no-credit-card deployment alternative:
+[docs/render-neon-deployment.md](docs/render-neon-deployment.md)
+
 ## authentication
 
 bob has local authentication implemented.
@@ -323,6 +326,7 @@ More docs:
 - [Architecture](docs/architecture.md)
 - [Engineering decisions](docs/engineering-decisions.md)
 - [Oracle deployment](docs/oracle-deployment.md)
+- [Render + Neon deployment](docs/render-neon-deployment.md)
 - [Product direction](docs/product.md)
 - [Roadmap](docs/roadmap.md)
 - [Brand notes](docs/brand.md)
