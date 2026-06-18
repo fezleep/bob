@@ -1,4 +1,4 @@
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+const serverApiBaseUrl = process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export type ApiFieldError = {
   field: string;
@@ -31,8 +31,14 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   const { authToken, ...fetchOptions } = options;
   const isBrowserRequest = typeof window !== "undefined" && !authToken;
 
-  if (!apiBaseUrl && !isBrowserRequest) {
-    throw new ApiError("Set NEXT_PUBLIC_API_BASE_URL to connect the backend.", 0);
+  let url = path;
+
+  if (!isBrowserRequest) {
+    if (!serverApiBaseUrl) {
+      throw new ApiError("Set API_BASE_URL or NEXT_PUBLIC_API_BASE_URL to connect the backend.", 0);
+    }
+
+    url = `${serverApiBaseUrl.replace(/\/$/, "")}${path}`;
   }
 
   const headers: Record<string, string> = {
@@ -47,7 +53,6 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
     headers.Authorization = `Bearer ${authToken}`;
   }
 
-  const url = isBrowserRequest ? path : `${apiBaseUrl?.replace(/\/$/, "")}${path}`;
   let response: Response;
 
   try {

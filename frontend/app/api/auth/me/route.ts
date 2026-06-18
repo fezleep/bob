@@ -30,10 +30,12 @@ export async function GET() {
     });
   } catch (error) {
     if (error instanceof ApiError) {
-      const status = error.status || 503;
+      const status = error.status === 401 || error.status === 403 ? 401 : 503;
+      const message =
+        status === 401 ? "Authentication required." : "Session validation is temporarily unavailable.";
 
       return NextResponse.json(
-        { message: error.message, fields: error.fields },
+        { message, fields: error.fields },
         {
           status,
           headers: {

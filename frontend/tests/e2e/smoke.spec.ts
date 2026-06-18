@@ -52,6 +52,34 @@ test("logout GET does not clear the auth cookie", async ({ page, baseURL }) => {
   );
 });
 
+test("temporary auth validation failure keeps the signed-in state", async ({ page, baseURL }) => {
+  const appUrl = baseURL ?? "http://127.0.0.1:3001";
+
+  await page.context().addCookies([
+    {
+      name: "bob_token",
+      value: "cold-start-token",
+      url: appUrl,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+  await page.route("**/api/auth/me", async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "Session validation is temporarily unavailable." }),
+    });
+  });
+
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  await expect(page.getByRole("button", { name: "Logout" }).first()).toBeVisible();
+  await expect(
+    page.getByText("Unable to validate session because the backend is not reachable.")
+  ).toBeVisible();
+});
+
 test("command palette trigger is present", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 
