@@ -60,6 +60,8 @@ const capabilities = [
   { label: "Attention queue", state: "Implemented" },
   { label: "Production diagnostics", state: "Implemented" },
   { label: "OpenAPI docs", state: "Implemented" },
+  { label: "Render + Neon deployment", state: "Prepared" },
+  { label: "Oracle VM deployment", state: "Prepared" },
   { label: "Redis or async jobs", state: "Roadmap" },
 ];
 
@@ -196,8 +198,8 @@ export default function Home() {
             </h2>
           </div>
           <p className="max-w-xl text-sm leading-6 text-muted">
-            Implemented items map to the current app. Planned items are labeled as
-            roadmap so the showcase stays honest.
+            Implemented items map to the current app. Prepared deployment paths are
+            documented, and roadmap items are labeled separately.
           </p>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -212,7 +214,9 @@ export default function Home() {
                   "shrink-0 rounded-full border px-2 py-1 text-[0.7rem] font-medium uppercase tracking-[0.08em]",
                   capability.state === "Implemented"
                     ? "border-accent/30 bg-accent/[0.08] text-[rgb(var(--champagne))]"
-                    : "border-border/60 bg-black/20 text-faint",
+                    : capability.state === "Prepared"
+                      ? "border-[rgb(var(--champagne)/0.28)] bg-[rgb(var(--champagne)/0.08)] text-[rgb(var(--champagne))]"
+                      : "border-border/60 bg-black/20 text-faint",
                 ].join(" ")}
               >
                 {capability.state}

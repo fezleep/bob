@@ -88,10 +88,16 @@ const implementedCapabilities: Capability[] = [
 
 const preparedCapabilities: Capability[] = [
   {
+    title: "Render + Neon deployment path",
+    state: "Prepared",
+    body: "Repository docs describe deploying the Spring Boot backend on Render with managed PostgreSQL on Neon.",
+    meta: "Documented deployment path",
+  },
+  {
     title: "Oracle VM deployment foundation",
     state: "Prepared",
     body: "Repository docs describe a direct Oracle Always Free VM deployment path for the backend.",
-    meta: "Documented foundation",
+    meta: "Documented deployment path",
   },
   {
     title: "Docker Compose backend/Postgres setup",
@@ -120,7 +126,7 @@ const plannedCapabilities: Capability[] = [
   {
     title: "Kubernetes/deployment story",
     state: "Planned",
-    body: "Roadmap candidate only if orchestration needs justify the operational cost.",
+    body: "Roadmap candidate only if orchestration needs outgrow the prepared Render, Neon, and Oracle paths.",
   },
 ];
 
@@ -144,12 +150,17 @@ const references = [
   {
     label: "Production recovery",
     href: "docs/production-recovery.md",
-    body: "Repository runbook for health checks and recovery steps.",
+    body: "Repository runbook for health checks, recovery steps, and redeploy choices.",
+  },
+  {
+    label: "Render + Neon deployment",
+    href: "docs/render-neon-deployment.md",
+    body: "Repository guide for the prepared managed deployment path.",
   },
   {
     label: "Oracle deployment",
     href: "docs/oracle-deployment.md",
-    body: "Repository guide for the prepared VM deployment foundation.",
+    body: "Repository guide for the prepared VM deployment path.",
   },
 ];
 
@@ -369,7 +380,7 @@ export default async function CapabilitiesPage() {
             Prepared
           </p>
           <h2 className="mt-2 text-base font-medium text-ink">
-            Foundations that are documented or ready to run locally.
+            Deployment paths and local foundations that are documented.
           </h2>
           <CapabilityGrid items={preparedCapabilities} />
         </div>
