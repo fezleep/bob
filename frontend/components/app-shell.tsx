@@ -64,15 +64,21 @@ export function AppShell({
           signal: controller.signal,
         });
 
-        setSignedIn(response.ok);
-        setSessionMessage(
-          response.status === 503
-            ? "Unable to validate session because the backend is not reachable."
-            : null
-        );
+        if (response.ok) {
+          setSignedIn(true);
+          setSessionMessage(null);
+          return;
+        }
+
+        if (response.status === 401 || response.status === 403) {
+          setSignedIn(false);
+          setSessionMessage(null);
+          return;
+        }
+
+        setSessionMessage("Unable to validate session because the backend is not reachable.");
       } catch {
         if (!controller.signal.aborted) {
-          setSignedIn(false);
           setSessionMessage("Unable to validate session because the backend is not reachable.");
         }
       }

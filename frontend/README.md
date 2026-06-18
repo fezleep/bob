@@ -12,12 +12,13 @@ npm run dev
 
 The app runs on `http://localhost:3000` by default.
 Set `NEXT_PUBLIC_API_BASE_URL` to the backend origin, for example `http://localhost:8080`.
+Server-side auth and data requests use `API_BASE_URL` when it is set, and otherwise fall back to `NEXT_PUBLIC_API_BASE_URL`.
 
 ## Production Auth
 
 Use one canonical frontend domain in production so the `bob_token` auth cookie is set and sent on the same host. By default the cookie is host-only.
 
-Set `BOB_AUTH_COOKIE_DOMAIN` only when using a custom/root domain and intentionally sharing auth across subdomains, for example `.example.com`. Keep `BOB_AUTH_JWT_SECRET` stable across backend deploys, and keep the JWT expiration positive and reasonable.
+Set `API_BASE_URL` on Vercel to the Render backend origin, for example `https://bob-backend-taj4.onrender.com`, or keep `NEXT_PUBLIC_API_BASE_URL` set to the same origin. Set `BOB_AUTH_COOKIE_DOMAIN` only when using a custom/root domain and intentionally sharing auth across subdomains, for example `.example.com`. Keep `BOB_AUTH_JWT_SECRET` stable across backend deploys, and keep the JWT expiration positive and reasonable.
 
 If production appears to loop back to login, first confirm the backend and database are available. A paused backend or paused Postgres service can prevent session validation even when the frontend cookie is correct. See [../docs/production-recovery.md](../docs/production-recovery.md).
 
