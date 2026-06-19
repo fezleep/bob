@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { LeadWorkspace } from "@/components/lead-workspace";
+import { SessionUnavailablePanel } from "@/components/session-unavailable-panel";
 import { StatusPill } from "@/components/status-pill";
 import {
   formatActivityType,
@@ -17,7 +18,12 @@ import {
   type LeadAttentionSignal,
   type LeadStatus,
 } from "@/lib/leads";
-import { requireAuthToken } from "@/lib/server-auth";
+import {
+  isInvalidAuthError,
+  isTemporaryAuthValidationError,
+  redirectToLogin,
+  requireAuthToken,
+} from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -69,15 +75,31 @@ async function getRecentActivities(leads: Lead[], authToken: string) {
 
 export default async function WorkspacePage() {
   const authToken = await requireAuthToken();
-  const [leads, attentionQueue] = await Promise.all([
-    getAllLeads({
-      sort: "updatedAt",
-      direction: "desc",
-      authToken,
-    }),
-    getLeadAttentionQueue(authToken),
-  ]);
-  const recentActivities = await getRecentActivities(leads, authToken);
+  let leads: Lead[];
+  let attentionQueue: LeadAttentionItem[];
+  let recentActivities: ActivityWithLead[];
+
+  try {
+    [leads, attentionQueue] = await Promise.all([
+      getAllLeads({
+        sort: "updatedAt",
+        direction: "desc",
+        authToken,
+      }),
+      getLeadAttentionQueue(authToken),
+    ]);
+    recentActivities = await getRecentActivities(leads, authToken);
+  } catch (error) {
+    if (isInvalidAuthError(error)) {
+      redirectToLogin();
+    }
+
+    if (isTemporaryAuthValidationError(error)) {
+      return <SessionUnavailablePanel retryHref="/workspace" />;
+    }
+
+    throw error;
+  }
   const activeLeads = leads.filter((lead) => activeStatuses.includes(lead.status));
   const qualifiedLeads = leads.filter((lead) => lead.status === "QUALIFIED");
   const movedRecently = leads.filter((lead) => daysSince(lead.updatedAt) <= 7);

@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { ApiError } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
 import { authCookieName } from "@/lib/auth-cookie";
 
@@ -31,4 +32,16 @@ export async function getServerUser() {
   } catch {
     return null;
   }
+}
+
+export function isInvalidAuthError(error: unknown) {
+  return error instanceof ApiError && (error.status === 401 || error.status === 403);
+}
+
+export function isTemporaryAuthValidationError(error: unknown) {
+  return error instanceof ApiError && !isInvalidAuthError(error);
+}
+
+export function redirectToLogin() {
+  redirect("/login");
 }

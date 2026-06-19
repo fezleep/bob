@@ -80,6 +80,68 @@ test("temporary auth validation failure keeps the signed-in state", async ({ pag
   ).toBeVisible();
 });
 
+test("auth cookie remains after navigation and refresh", async ({ page, baseURL }) => {
+  const appUrl = baseURL ?? "http://127.0.0.1:3001";
+
+  await page.context().addCookies([
+    {
+      name: "bob_token",
+      value: "navigation-token",
+      url: appUrl,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+  await page.route("**/api/auth/me", async (route) => {
+    await route.fulfill({
+      status: 503,
+      contentType: "application/json",
+      body: JSON.stringify({ message: "Session validation is temporarily unavailable." }),
+    });
+  });
+
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("link", { name: "About" }).first().click();
+  await expect(page).toHaveURL(/\/about$/);
+  await page.reload({ waitUntil: "domcontentloaded" });
+
+  const cookies = await page.context().cookies(appUrl);
+  expect(cookies.find((cookie) => cookie.name === "bob_token")?.value).toBe(
+    "navigation-token"
+  );
+});
+
+test("protected route backend failure does not force login", async ({ page, baseURL }) => {
+  test.skip(
+    Boolean(process.env.API_BASE_URL || process.env.NEXT_PUBLIC_API_BASE_URL),
+    "This check relies on the local test server having no backend URL configured."
+  );
+
+  const appUrl = baseURL ?? "http://127.0.0.1:3001";
+
+  await page.context().addCookies([
+    {
+      name: "bob_token",
+      value: "temporary-backend-failure-token",
+      url: appUrl,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
+
+  await page.goto("/workspace", { waitUntil: "domcontentloaded" });
+
+  await expect(page).toHaveURL(/\/workspace$/);
+  await expect(
+    page.getByRole("heading", { name: "Session validation is temporarily unavailable" })
+  ).toBeVisible();
+
+  const cookies = await page.context().cookies(appUrl);
+  expect(cookies.find((cookie) => cookie.name === "bob_token")?.value).toBe(
+    "temporary-backend-failure-token"
+  );
+});
+
 test("command palette trigger is present", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
 

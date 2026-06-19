@@ -1,18 +1,39 @@
 import { CreateLeadForm } from "@/components/create-lead-form";
 import { LeadWorkspace } from "@/components/lead-workspace";
+import { SessionUnavailablePanel } from "@/components/session-unavailable-panel";
 import { StatusPill } from "@/components/status-pill";
-import { getAllLeads, statuses } from "@/lib/leads";
-import { requireAuthToken } from "@/lib/server-auth";
+import { getAllLeads, statuses, type Lead } from "@/lib/leads";
+import {
+  isInvalidAuthError,
+  isTemporaryAuthValidationError,
+  redirectToLogin,
+  requireAuthToken,
+} from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function LeadsPage() {
   const authToken = await requireAuthToken();
-  const leads = await getAllLeads({
-    sort: "updatedAt",
-    direction: "desc",
-    authToken,
-  });
+  let leads: Lead[];
+
+  try {
+    leads = await getAllLeads({
+      sort: "updatedAt",
+      direction: "desc",
+      authToken,
+    });
+  } catch (error) {
+    if (isInvalidAuthError(error)) {
+      redirectToLogin();
+    }
+
+    if (isTemporaryAuthValidationError(error)) {
+      return <SessionUnavailablePanel retryHref="/leads" />;
+    }
+
+    throw error;
+  }
+
   const openLeads = leads.filter((lead) => !["CLOSED", "LOST"].includes(lead.status));
   const quietCopy =
     leads.length > 0

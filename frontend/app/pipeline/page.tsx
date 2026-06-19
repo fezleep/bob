@@ -1,17 +1,38 @@
 import Link from "next/link";
 import { PipelineBoard } from "@/components/pipeline-board";
-import { getAllLeads, statuses } from "@/lib/leads";
-import { requireAuthToken } from "@/lib/server-auth";
+import { SessionUnavailablePanel } from "@/components/session-unavailable-panel";
+import { getAllLeads, statuses, type Lead } from "@/lib/leads";
+import {
+  isInvalidAuthError,
+  isTemporaryAuthValidationError,
+  redirectToLogin,
+  requireAuthToken,
+} from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
 export default async function PipelinePage() {
   const authToken = await requireAuthToken();
-  const leads = await getAllLeads({
-    sort: "updatedAt",
-    direction: "desc",
-    authToken,
-  });
+  let leads: Lead[];
+
+  try {
+    leads = await getAllLeads({
+      sort: "updatedAt",
+      direction: "desc",
+      authToken,
+    });
+  } catch (error) {
+    if (isInvalidAuthError(error)) {
+      redirectToLogin();
+    }
+
+    if (isTemporaryAuthValidationError(error)) {
+      return <SessionUnavailablePanel retryHref="/pipeline" />;
+    }
+
+    throw error;
+  }
+
   const openLeads = leads.filter((lead) => !["CLOSED", "LOST"].includes(lead.status));
 
   return (

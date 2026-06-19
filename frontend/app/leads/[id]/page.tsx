@@ -4,6 +4,7 @@ import { ActivityTimeline } from "@/components/activity-timeline";
 import { LeadInsightSection } from "@/components/lead-insight-section";
 import { LeadDetailActions } from "@/components/lead-detail-actions";
 import { NotesSection } from "@/components/notes-section";
+import { SessionUnavailablePanel } from "@/components/session-unavailable-panel";
 import { StatusPill } from "@/components/status-pill";
 import { ApiError } from "@/lib/api";
 import {
@@ -16,7 +17,12 @@ import {
   getLeadDetail,
   type LeadDetail,
 } from "@/lib/leads";
-import { requireAuthToken } from "@/lib/server-auth";
+import {
+  isInvalidAuthError,
+  isTemporaryAuthValidationError,
+  redirectToLogin,
+  requireAuthToken,
+} from "@/lib/server-auth";
 
 type LeadDetailPageProps = {
   params: Promise<{
@@ -71,8 +77,16 @@ export default async function LeadDetailPage({ params }: LeadDetailPageProps) {
   try {
     lead = await getLeadDetail(id, authToken);
   } catch (error) {
+    if (isInvalidAuthError(error)) {
+      redirectToLogin();
+    }
+
     if (error instanceof ApiError && error.status === 404) {
       notFound();
+    }
+
+    if (isTemporaryAuthValidationError(error)) {
+      return <SessionUnavailablePanel retryHref={`/leads/${id}`} />;
     }
 
     throw error;
