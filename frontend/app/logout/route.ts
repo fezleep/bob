@@ -13,6 +13,7 @@ export async function POST(request: NextRequest) {
   response.cookies.set(authCookieName, "", {
     ...authCookieOptions,
     maxAge: 0,
+    expires: new Date(0),
   });
   revalidatePath("/", "layout");
 

@@ -16,9 +16,12 @@ export type AuthFormState = {
 };
 
 async function setAuthCookie(response: AuthResponse) {
+  const maxAge = response.expiresInSeconds;
+
   (await cookies()).set(authCookieName, response.token, {
     ...authCookieOptions,
-    maxAge: response.expiresInSeconds,
+    maxAge,
+    expires: new Date(Date.now() + maxAge * 1000),
   });
   revalidatePath("/", "layout");
 }
