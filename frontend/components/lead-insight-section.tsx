@@ -42,12 +42,23 @@ export function LeadInsightSection({
           </p>
         </div>
 
-        <form action={formAction} className="shrink-0">
+        <form action={formAction} className="flex shrink-0 flex-col gap-2 sm:flex-row">
           <input type="hidden" name="leadId" value={leadId} />
           <GenerateButton
             disabled={!insight.aiAvailable}
-            label={hasInsight ? "Regenerate" : "Generate Bob read"}
+            label={hasInsight ? "Refresh read" : "Generate Bob read"}
           />
+          {hasInsight ? (
+            <button
+              type="submit"
+              name="force"
+              value="true"
+              disabled={!insight.aiAvailable}
+              className="focus-ring h-10 w-full rounded-md border border-border/65 bg-elevated/[0.2] px-3 text-sm font-medium text-muted transition duration-200 hover:border-accent/35 hover:text-ink active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55 disabled:active:scale-100 sm:w-auto"
+            >
+              Regenerate
+            </button>
+          ) : null}
         </form>
       </div>
 
@@ -61,7 +72,9 @@ export function LeadInsightSection({
           ) : null}
           {insight.generatedAt ? (
             <p className="pt-1 text-xs text-faint">
-              Generated {formatLeadDate(insight.generatedAt)}
+              {insight.cached
+                ? `Cached ${insight.cachedAt ? formatLeadDate(insight.cachedAt) : "for this lead context"}`
+                : `Generated ${formatLeadDate(insight.generatedAt)}`}
               {insight.model ? ` with ${insight.model}` : ""}
             </p>
           ) : null}

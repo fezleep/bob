@@ -393,45 +393,50 @@ export async function generateLeadInsightAction(
   formData: FormData
 ): Promise<LeadInsightFormState> {
   const leadId = String(formData.get("leadId") || "").trim();
+  const force = String(formData.get("force") || "").trim() === "true";
 
   try {
     const authToken = await requireAuthToken();
-    const insight = await generateLeadInsight(leadId, authToken);
+    const insight = await generateLeadInsight(leadId, authToken, { force });
 
     revalidatePath(`/leads/${leadId}`);
 
     if (!insight.aiAvailable || !insight.summary) {
       return {
-        fields: { leadId },
+        fields: { leadId, force },
         message: insight.message,
         success: false,
       };
     }
 
     return {
-      fields: { leadId },
-      message: "Bob read generated.",
+      fields: { leadId, force },
+      message: insight.cached
+        ? "Cached Bob read reused."
+        : force
+          ? "Bob read regenerated."
+          : "Bob read generated.",
       success: true,
     };
   } catch (error) {
     if (error instanceof ApiError) {
       if (error.status === 502) {
         return {
-          fields: { leadId },
+          fields: { leadId, force },
           message: "Bob read generation failed. Try again in a moment.",
           success: false,
         };
       }
 
       return {
-        fields: { leadId },
+        fields: { leadId, force },
         message: error.message,
         success: false,
       };
     }
 
     return {
-      fields: { leadId },
+      fields: { leadId, force },
       message: "Unable to generate a Bob read right now.",
       success: false,
     };

@@ -4,6 +4,8 @@ import com.bob.modules.ai.AiGeneratedInsight;
 import com.bob.modules.ai.AiInsightClient;
 import com.bob.modules.ai.AiProperties;
 import com.bob.modules.ai.AiProviderException;
+import com.bob.modules.ai.LeadInsightCache;
+import com.bob.modules.ai.LeadInsightCacheEntry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +48,9 @@ class LeadServiceTest {
     @Mock
     private AiInsightClient aiInsightClient;
 
+    @Mock
+    private LeadInsightCache leadInsightCache;
+
     private LeadService leadService;
     private AiProperties aiProperties;
     private Clock clock;
@@ -61,6 +66,7 @@ class LeadServiceTest {
                 leadInsightRepository,
                 aiProperties,
                 aiInsightClient,
+                leadInsightCache,
                 clock
         );
     }
@@ -307,6 +313,7 @@ class LeadServiceTest {
     @Test
     void returnsUnavailableInsightStateWhenAiIsNotConfigured() {
         UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.NEW);
         leadService = new LeadService(
                 leadRepository,
                 leadNoteRepository,
@@ -314,10 +321,11 @@ class LeadServiceTest {
                 leadInsightRepository,
                 new AiProperties(false, "", ""),
                 aiInsightClient,
+                leadInsightCache,
                 clock
         );
 
-        when(leadRepository.existsById(leadId)).thenReturn(true);
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
 
         LeadInsightResponse response = leadService.getInsight(leadId);
 
@@ -337,6 +345,7 @@ class LeadServiceTest {
                 leadInsightRepository,
                 new AiProperties(false, "test-model", "test-key"),
                 aiInsightClient,
+                leadInsightCache,
                 clock
         );
 
@@ -362,6 +371,7 @@ class LeadServiceTest {
                 leadInsightRepository,
                 new AiProperties(true, "test-model", ""),
                 aiInsightClient,
+                leadInsightCache,
                 clock
         );
 
@@ -387,6 +397,7 @@ class LeadServiceTest {
                 leadInsightRepository,
                 new AiProperties(true, "", "test-key"),
                 aiInsightClient,
+                leadInsightCache,
                 clock
         );
 
@@ -413,10 +424,11 @@ class LeadServiceTest {
                 leadInsightRepository,
                 new AiProperties(false, "test-model", "test-key"),
                 aiInsightClient,
+                leadInsightCache,
                 clock
         );
 
-        when(leadRepository.existsById(leadId)).thenReturn(true);
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
         when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.of(savedInsight));
 
         LeadInsightResponse response = leadService.getInsight(leadId);
@@ -455,6 +467,7 @@ class LeadServiceTest {
         assertThat(response.summary()).isEqualTo("Analytical Engines has a fresh conversation around timing.");
         assertThat(response.statusRead()).isEqualTo("conversation is warming up");
         assertThat(response.model()).isEqualTo("test-model");
+        assertThat(response.cached()).isFalse();
         ArgumentCaptor<String> promptCaptor = ArgumentCaptor.forClass(String.class);
         verify(aiInsightClient).generate(promptCaptor.capture());
         assertThat(promptCaptor.getValue()).contains("Asked for a timeline next week.");
@@ -464,6 +477,90 @@ class LeadServiceTest {
         assertThat(promptCaptor.getValue()).doesNotContain("Authorization");
         assertThat(promptCaptor.getValue()).doesNotContain("OPENAI_API_KEY");
         verify(leadInsightRepository).save(any(LeadInsight.class));
+        verify(leadInsightCache).put(org.mockito.ArgumentMatchers.startsWith("lead-insight:v1:"), any());
+    }
+
+    @Test
+    void generationReturnsCachedInsightWhenContextMatches() {
+        UUID leadId = UUID.randomUUID();
+        UUID insightId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+        LeadInsightCacheEntry cachedEntry = new LeadInsightCacheEntry(
+                insightId,
+                leadId,
+                "Cached summary.",
+                "Cached status read.",
+                "Cached next action.",
+                null,
+                "test-model",
+                OffsetDateTime.parse("2026-06-09T14:00:00Z"),
+                OffsetDateTime.parse("2026-06-09T15:00:00Z")
+        );
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(leadInsightCache.get(org.mockito.ArgumentMatchers.startsWith("lead-insight:v1:")))
+                .thenReturn(Optional.of(cachedEntry));
+
+        LeadInsightResponse response = leadService.generateInsight(leadId);
+
+        assertThat(response.cached()).isTrue();
+        assertThat(response.id()).isEqualTo(insightId);
+        assertThat(response.summary()).isEqualTo("Cached summary.");
+        assertThat(response.cachedAt()).isEqualTo(OffsetDateTime.parse("2026-06-09T15:00:00Z"));
+        verifyNoInteractions(aiInsightClient);
+        verify(leadInsightRepository, never()).save(any(LeadInsight.class));
+    }
+
+    @Test
+    void forcedGenerationBypassesCachedInsight() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
+        when(aiInsightClient.generate(any())).thenReturn(new AiGeneratedInsight(
+                "Fresh summary.",
+                "Fresh status read.",
+                "Fresh next action.",
+                ""
+        ));
+        when(leadInsightRepository.save(any(LeadInsight.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LeadInsightResponse response = leadService.generateInsight(leadId, true);
+
+        assertThat(response.cached()).isFalse();
+        assertThat(response.summary()).isEqualTo("Fresh summary.");
+        verify(leadInsightCache, never()).get(any());
+        verify(aiInsightClient).generate(any());
+    }
+
+    @Test
+    void cacheFailureFallsBackToProviderGeneration() {
+        UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.CONTACTED);
+
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
+        when(leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(leadId)).thenReturn(List.of());
+        when(leadInsightCache.get(any())).thenThrow(new IllegalStateException("cache unavailable"));
+        when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
+        when(aiInsightClient.generate(any())).thenReturn(new AiGeneratedInsight(
+                "Fallback summary.",
+                "Fallback status read.",
+                "Fallback next action.",
+                null
+        ));
+        when(leadInsightRepository.save(any(LeadInsight.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        LeadInsightResponse response = leadService.generateInsight(leadId);
+
+        assertThat(response.cached()).isFalse();
+        assertThat(response.summary()).isEqualTo("Fallback summary.");
+        verify(aiInsightClient).generate(any());
     }
 
     @Test
@@ -511,13 +608,15 @@ class LeadServiceTest {
     @Test
     void configuredAiIsConsideredAvailableBeforeGeneration() {
         UUID leadId = UUID.randomUUID();
+        Lead lead = lead(leadId, LeadStatus.NEW);
 
-        when(leadRepository.existsById(leadId)).thenReturn(true);
+        when(leadRepository.findById(leadId)).thenReturn(Optional.of(lead));
         when(leadInsightRepository.findByLeadId(leadId)).thenReturn(Optional.empty());
 
         LeadInsightResponse response = leadService.getInsight(leadId);
 
         assertThat(response.aiAvailable()).isTrue();
+        assertThat(response.cached()).isFalse();
         assertThat(response.message()).isEqualTo("No Bob read has been generated for this lead yet.");
         assertThat(response.summary()).isNull();
         verifyNoInteractions(aiInsightClient);

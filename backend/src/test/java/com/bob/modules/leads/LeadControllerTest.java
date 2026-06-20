@@ -330,7 +330,7 @@ class LeadControllerTest {
     void generationProviderFailureReturnsGenerationFailureMessage() throws Exception {
         UUID leadId = UUID.randomUUID();
 
-        when(leadService.generateInsight(leadId)).thenThrow(new AiProviderException(
+        when(leadService.generateInsight(leadId, false)).thenThrow(new AiProviderException(
                 "AI insight generation failed.",
                 AiProviderException.Category.PROVIDER_ERROR,
                 new RuntimeException("provider failed")
@@ -339,5 +339,35 @@ class LeadControllerTest {
         mockMvc.perform(post("/api/leads/{id}/insights/generate", leadId))
                 .andExpect(status().isBadGateway())
                 .andExpect(jsonPath("$.message").value("AI insight generation failed. Try again in a moment."));
+    }
+
+    @Test
+    void generationCanForceCacheBypass() throws Exception {
+        UUID leadId = UUID.randomUUID();
+        OffsetDateTime generatedAt = OffsetDateTime.parse("2026-06-09T15:00:00Z");
+        LeadInsightResponse response = new LeadInsightResponse(
+                true,
+                "Latest Bob read.",
+                UUID.randomUUID(),
+                leadId,
+                "Summary.",
+                "Status read.",
+                "Next action.",
+                null,
+                "test-model",
+                generatedAt,
+                false,
+                null
+        );
+
+        when(leadService.generateInsight(leadId, true)).thenReturn(response);
+
+        mockMvc.perform(post("/api/leads/{id}/insights/generate", leadId)
+                        .param("force", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cached").value(false))
+                .andExpect(jsonPath("$.generatedAt").value("2026-06-09T15:00:00Z"));
+
+        verify(leadService).generateInsight(leadId, true);
     }
 }
