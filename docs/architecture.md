@@ -63,6 +63,8 @@ Current API areas:
 - `/api/status`
 - `/actuator/health`
 
+The public `/api/status` response is intentionally non-sensitive. It reports the app name, status, version, whether AI insights are fully configured, the current cache mode, and OpenAPI availability. It does not expose database URLs, JWT settings, API keys, credentials, provider responses, or internal passwords.
+
 API documentation is generated with springdoc OpenAPI. Swagger UI is available at `/swagger-ui/index.html`, and the OpenAPI JSON document is available at `/v3/api-docs` on the backend origin.
 
 Request validation uses Bean Validation. API errors use a shared response shape with timestamp, status, error, message, and field-level validation details where useful.

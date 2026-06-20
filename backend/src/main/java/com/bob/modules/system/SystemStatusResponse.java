@@ -3,6 +3,9 @@ package com.bob.modules.system;
 public record SystemStatusResponse(
         String appName,
         String status,
-        String version
+        String version,
+        boolean aiEnabled,
+        String cacheMode,
+        boolean openApiAvailable
 ) {
 }

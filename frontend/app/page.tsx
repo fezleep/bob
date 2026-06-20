@@ -56,6 +56,7 @@ const capabilities = [
   { label: "PostgreSQL persistence", state: "Implemented" },
   { label: "JWT auth", state: "Implemented" },
   { label: "AI insights", state: "Implemented" },
+  { label: "In-process AI cache", state: "Implemented" },
   { label: "Follow-up engine", state: "Implemented" },
   { label: "Attention queue", state: "Implemented" },
   { label: "Production diagnostics", state: "Implemented" },

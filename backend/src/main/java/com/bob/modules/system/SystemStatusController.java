@@ -1,6 +1,7 @@
 package com.bob.modules.system;
 
 import com.bob.config.ApplicationInfoProperties;
+import com.bob.modules.ai.AiProperties;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -10,9 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class SystemStatusController {
 
     private final ApplicationInfoProperties applicationInfo;
+    private final AiProperties aiProperties;
 
-    public SystemStatusController(ApplicationInfoProperties applicationInfo) {
+    public SystemStatusController(ApplicationInfoProperties applicationInfo, AiProperties aiProperties) {
         this.applicationInfo = applicationInfo;
+        this.aiProperties = aiProperties;
     }
 
     @GetMapping
@@ -20,7 +23,10 @@ public class SystemStatusController {
         return new SystemStatusResponse(
                 applicationInfo.name(),
                 "ok",
-                applicationInfo.version()
+                applicationInfo.version(),
+                aiProperties.configured(),
+                "in-memory",
+                true
         );
     }
 }
