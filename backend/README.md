@@ -58,6 +58,8 @@ OPENAI_API_KEY=<your-openai-api-key>
 
 If AI is disabled, `OPENAI_API_KEY` is empty, or `BOB_AI_MODEL` is empty, the API returns an unavailable state instead of generating an insight. If AI is disabled after insights already exist, saved insights can still be returned for display, but regeneration stays unavailable.
 
+Generated lead insights are cached in-process for matching lead context and model values. The cache uses a deterministic hash of the backend-built lead context, expires entries after a short window, and is best-effort: cache misses or cache errors fall back to normal provider generation. Redis is not required and there are no cache environment variables in this branch.
+
 For local provider debugging only, `BOB_AI_DEBUG_RESPONSE_SHAPE=true` logs a heavily sanitized and truncated provider response sample. Leave it unset or `false` in normal local runs, CI, dev, and production. The default parsing logs include only safe response metadata such as status, body length, top-level field names, and output/content item types.
 
 ## Run
@@ -75,7 +77,7 @@ From `/backend`:
 - Lead context: notes and activity timeline
 - Follow-ups: optional next follow-up timestamp on lead create/update
 - Attention queue: overdue and due-today follow-ups at `GET /api/leads/attention`
-- Bob read: latest saved insight lookup and user-triggered generation
+- Bob read: latest saved insight lookup, context-aware cached reuse, and user-triggered generation/regeneration
 - System: `/api/status` and `/actuator/health`
 - API docs: Swagger UI and OpenAPI JSON
 

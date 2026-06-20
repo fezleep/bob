@@ -32,6 +32,8 @@ export type LeadInsight = {
   attention: string | null;
   model: string | null;
   generatedAt: string | null;
+  cached: boolean;
+  cachedAt: string | null;
 };
 
 export type Lead = {
@@ -205,8 +207,14 @@ export async function getLeadActivities(id: string, authToken?: string) {
   return apiFetch<LeadActivity[]>(`/api/leads/${id}/activities`, { authToken });
 }
 
-export async function generateLeadInsight(id: string, authToken?: string) {
-  return apiFetch<LeadInsight>(`/api/leads/${id}/insights/generate`, {
+export async function generateLeadInsight(
+  id: string,
+  authToken?: string,
+  options: { force?: boolean } = {}
+) {
+  const query = options.force ? "?force=true" : "";
+
+  return apiFetch<LeadInsight>(`/api/leads/${id}/insights/generate${query}`, {
     method: "POST",
     authToken,
   });

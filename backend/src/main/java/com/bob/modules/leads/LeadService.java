@@ -4,6 +4,8 @@ import com.bob.modules.ai.AiGeneratedInsight;
 import com.bob.modules.ai.AiInsightClient;
 import com.bob.modules.ai.AiProviderException;
 import com.bob.modules.ai.AiProperties;
+import com.bob.modules.ai.LeadInsightCache;
+import com.bob.modules.ai.LeadInsightCacheEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -14,6 +16,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -33,6 +39,7 @@ class LeadService {
     private final LeadInsightRepository leadInsightRepository;
     private final AiProperties aiProperties;
     private final AiInsightClient aiInsightClient;
+    private final LeadInsightCache leadInsightCache;
     private final Clock clock;
 
     LeadService(
@@ -42,6 +49,7 @@ class LeadService {
             LeadInsightRepository leadInsightRepository,
             AiProperties aiProperties,
             AiInsightClient aiInsightClient,
+            LeadInsightCache leadInsightCache,
             Clock clock
     ) {
         this.leadRepository = leadRepository;
@@ -50,6 +58,7 @@ class LeadService {
         this.leadInsightRepository = leadInsightRepository;
         this.aiProperties = aiProperties;
         this.aiInsightClient = aiInsightClient;
+        this.leadInsightCache = leadInsightCache;
         this.clock = clock;
     }
 
@@ -164,11 +173,11 @@ class LeadService {
 
     @Transactional(readOnly = true)
     LeadInsightResponse getInsight(UUID id) {
-        ensureLeadExists(id);
+        Lead lead = findLead(id);
         String unavailableMessage = aiProperties.unavailableMessage();
         return leadInsightRepository.findByLeadId(id)
                 .map(insight -> aiProperties.configured()
-                        ? LeadInsightResponse.from(insight)
+                        ? cachedInsightResponse(lead).orElseGet(() -> LeadInsightResponse.from(insight))
                         : LeadInsightResponse.unavailableWithInsight(insight, unavailableMessage))
                 .orElseGet(() -> aiProperties.configured()
                         ? LeadInsightResponse.empty()
@@ -177,6 +186,11 @@ class LeadService {
 
     @Transactional
     LeadInsightResponse generateInsight(UUID id) {
+        return generateInsight(id, false);
+    }
+
+    @Transactional
+    LeadInsightResponse generateInsight(UUID id, boolean force) {
         Lead lead = findLead(id);
         logAiConfigState("generate", id);
 
@@ -195,9 +209,22 @@ class LeadService {
                 .limit(8)
                 .toList();
 
+        String leadContext = buildLeadContext(lead, notes, activities);
+        String cacheKey = cacheKey(lead, leadContext);
+        if (!force) {
+            Optional<LeadInsightResponse> cachedInsight = cachedInsightResponse(cacheKey);
+            if (cachedInsight.isPresent()) {
+                logger.info("AI insight cache hit: leadId={} model={}", id, aiProperties.normalizedModel());
+                return cachedInsight.get();
+            }
+            logger.info("AI insight cache miss: leadId={} model={}", id, aiProperties.normalizedModel());
+        } else {
+            logger.info("AI insight cache bypassed: leadId={} model={}", id, aiProperties.normalizedModel());
+        }
+
         AiGeneratedInsight generatedInsight;
         try {
-            generatedInsight = aiInsightClient.generate(buildLeadContext(lead, notes, activities));
+            generatedInsight = aiInsightClient.generate(leadContext);
         } catch (AiProviderException exception) {
             logger.warn(
                     "AI insight generation failed: leadId={} category={} model={}",
@@ -225,8 +252,47 @@ class LeadService {
         );
 
         LeadInsight savedInsight = leadInsightRepository.save(insight);
+        cacheInsight(cacheKey, savedInsight);
         logger.info("AI insight saved: leadId={} insightId={} model={}", id, savedInsight.getId(), savedInsight.getModel());
         return LeadInsightResponse.from(savedInsight);
+    }
+
+    private Optional<LeadInsightResponse> cachedInsightResponse(Lead lead) {
+        List<LeadNote> notes = leadNoteRepository.findByLeadIdOrderByCreatedAtDesc(lead.getId()).stream()
+                .limit(8)
+                .toList();
+        List<LeadActivity> activities = leadActivityRepository.findByLeadIdOrderByCreatedAtDesc(lead.getId()).stream()
+                .limit(8)
+                .toList();
+
+        return cachedInsightResponse(cacheKey(lead, buildLeadContext(lead, notes, activities)));
+    }
+
+    private Optional<LeadInsightResponse> cachedInsightResponse(String cacheKey) {
+        try {
+            return leadInsightCache.get(cacheKey).map(LeadInsightResponse::cached);
+        } catch (RuntimeException exception) {
+            logger.warn("AI insight cache read failed; falling back to saved/generated insight.");
+            return Optional.empty();
+        }
+    }
+
+    private void cacheInsight(String cacheKey, LeadInsight insight) {
+        try {
+            leadInsightCache.put(cacheKey, new LeadInsightCacheEntry(
+                    insight.getId(),
+                    insight.getLead().getId(),
+                    insight.getSummary(),
+                    insight.getStatusRead(),
+                    insight.getNextAction(),
+                    insight.getAttention(),
+                    insight.getModel(),
+                    insight.getGeneratedAt(),
+                    OffsetDateTime.now(clock)
+            ));
+        } catch (RuntimeException exception) {
+            logger.warn("AI insight cache write failed; continuing without cached insight.");
+        }
     }
 
     private void logAiConfigState(String operation, UUID leadId) {
@@ -324,6 +390,23 @@ class LeadService {
         }
 
         return context.toString();
+    }
+
+    private String cacheKey(Lead lead, String leadContext) {
+        return "lead-insight:v1:%s:%s:%s".formatted(
+                lead.getId(),
+                aiProperties.normalizedModel(),
+                sha256(leadContext)
+        );
+    }
+
+    private String sha256(String value) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException exception) {
+            throw new IllegalStateException("SHA-256 is not available", exception);
+        }
     }
 
     private String followUpState(OffsetDateTime nextFollowUpAt, OffsetDateTime now) {

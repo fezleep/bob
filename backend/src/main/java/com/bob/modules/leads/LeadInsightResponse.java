@@ -2,6 +2,7 @@ package com.bob.modules.leads;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import com.bob.modules.ai.LeadInsightCacheEntry;
 
 record LeadInsightResponse(
         boolean aiAvailable,
@@ -13,7 +14,9 @@ record LeadInsightResponse(
         String nextAction,
         String attention,
         String model,
-        OffsetDateTime generatedAt
+        OffsetDateTime generatedAt,
+        boolean cached,
+        OffsetDateTime cachedAt
 ) {
 
     static LeadInsightResponse unavailable(String message) {
@@ -27,6 +30,8 @@ record LeadInsightResponse(
                 null,
                 null,
                 null,
+                null,
+                false,
                 null
         );
     }
@@ -50,12 +55,31 @@ record LeadInsightResponse(
                 null,
                 null,
                 null,
+                null,
+                false,
                 null
         );
     }
 
     static LeadInsightResponse from(LeadInsight insight) {
         return from(insight, true, "Latest Bob read.");
+    }
+
+    static LeadInsightResponse cached(LeadInsightCacheEntry entry) {
+        return new LeadInsightResponse(
+                true,
+                "Latest Bob read served from cache.",
+                entry.id(),
+                entry.leadId(),
+                entry.summary(),
+                entry.statusRead(),
+                entry.nextAction(),
+                entry.attention(),
+                entry.model(),
+                entry.generatedAt(),
+                true,
+                entry.cachedAt()
+        );
     }
 
     private static LeadInsightResponse from(LeadInsight insight, boolean aiAvailable, String message) {
@@ -69,7 +93,9 @@ record LeadInsightResponse(
                 insight.getNextAction(),
                 insight.getAttention(),
                 insight.getModel(),
-                insight.getGeneratedAt()
+                insight.getGeneratedAt(),
+                false,
+                null
         );
     }
 }

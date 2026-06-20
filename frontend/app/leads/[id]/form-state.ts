@@ -52,6 +52,7 @@ export type LeadNoteFormState = {
 export type LeadInsightFormState = {
   fields: {
     leadId: string;
+    force: boolean;
   };
   message?: string;
   success?: boolean;
@@ -126,6 +127,7 @@ export function createInitialLeadInsightFormState(leadId: string): LeadInsightFo
   return {
     fields: {
       leadId,
+      force: false,
     },
   };
 }

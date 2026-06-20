@@ -85,7 +85,10 @@ class LeadController {
     }
 
     @PostMapping("/{id}/insights/generate")
-    LeadInsightResponse generateInsight(@PathVariable UUID id) {
-        return leadService.generateInsight(id);
+    LeadInsightResponse generateInsight(
+            @PathVariable UUID id,
+            @RequestParam(defaultValue = "false") boolean force
+    ) {
+        return leadService.generateInsight(id, force);
     }
 }

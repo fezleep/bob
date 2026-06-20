@@ -73,6 +73,12 @@ const implementedCapabilities: Capability[] = [
     dependsOnBackend: true,
   },
   {
+    title: "AI insight cache",
+    state: "Implemented",
+    body: "Repeated Bob read requests can reuse a cached result when the lead context hash has not changed.",
+    dependsOnBackend: true,
+  },
+  {
     title: "OpenAPI/Swagger docs",
     state: "Implemented",
     body: "The backend exposes Swagger UI and OpenAPI JSON for API review and integration work.",
@@ -109,9 +115,9 @@ const preparedCapabilities: Capability[] = [
 
 const plannedCapabilities: Capability[] = [
   {
-    title: "Redis AI insight cache",
+    title: "External Redis AI cache",
     state: "Planned",
-    body: "Roadmap candidate for short-lived cached insight reads. It is not part of the current system.",
+    body: "Roadmap candidate if cache sharing across backend instances becomes necessary. Redis is not required today.",
   },
   {
     title: "RabbitMQ async AI jobs",

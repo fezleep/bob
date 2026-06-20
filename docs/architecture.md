@@ -105,6 +105,8 @@ AI configuration is environment-driven:
 
 If AI is disabled, the API key is missing, or the model is missing, the backend returns a clear unavailable state and generation requests do not call OpenAI. Provider failures are returned as safe generic errors without raw provider details, prompts, headers, or secrets. Insights are assistive only: they summarize context and suggest a next action, but they do not mutate lead workflow state, perform autonomous actions, or represent final business truth.
 
+Lead insight generation also has a best-effort in-process cache keyed by lead id, model, and a SHA-256 hash of the same lead context sent to the AI provider. When the lead context is unchanged, cache-aware generation can return the cached insight metadata instead of calling the provider. Users can explicitly force regeneration from the lead detail UI or with `POST /api/leads/{id}/insights/generate?force=true`. Redis is not required for startup or production deployment in this branch; cache failure falls back to normal generation.
+
 ## Follow-Up and Attention Flow
 
 Leads can store an optional `nextFollowUpAt` timestamp through the create and update API flows. The workspace attention queue reads leads with follow-up dates and returns only overdue or due-today items, ordered by urgency and relevant timestamp. Future scheduled follow-ups stay out of the queue until they become due.
