@@ -11,6 +11,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.bob.config.ApplicationInfoProperties;
 import com.bob.modules.auth.JwtService;
+import com.bob.modules.ai.AiProperties;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -32,7 +33,10 @@ class SystemStatusControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.appName").value("bob"))
                 .andExpect(jsonPath("$.status").value("ok"))
-                .andExpect(jsonPath("$.version").value("0.1.0"));
+                .andExpect(jsonPath("$.version").value("0.1.0"))
+                .andExpect(jsonPath("$.aiEnabled").value(false))
+                .andExpect(jsonPath("$.cacheMode").value("in-memory"))
+                .andExpect(jsonPath("$.openApiAvailable").value(true));
     }
 
     @TestConfiguration
@@ -41,6 +45,11 @@ class SystemStatusControllerTest {
         @Bean
         ApplicationInfoProperties applicationInfoProperties() {
             return new ApplicationInfoProperties("bob", "0.1.0");
+        }
+
+        @Bean
+        AiProperties aiProperties() {
+            return new AiProperties(false, "", "");
         }
     }
 }

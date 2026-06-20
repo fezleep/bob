@@ -54,7 +54,7 @@ curl -i "$BACKEND_ORIGIN/api/status"
 Expected healthy results:
 
 - `/actuator/health` returns HTTP 200 and `{"status":"UP"}`.
-- `/api/status` returns HTTP 200 with Bob's app name, status, and version.
+- `/api/status` returns HTTP 200 with Bob's app name, status, version, AI readiness, cache mode, and OpenAPI availability.
 
 If either request times out, cannot resolve DNS, returns a platform pause page, or returns 5xx, treat this as a backend/platform problem before debugging frontend auth.
 
@@ -132,4 +132,3 @@ Recovery order:
 9. Go to Pipeline.
 10. Refresh the page.
 11. Confirm the user remains logged in and no API-unavailable banner appears.
-

@@ -120,7 +120,7 @@ https://<render-backend-origin>/swagger-ui/index.html
 Expected results:
 
 - `/actuator/health` returns HTTP 200 with status `UP`.
-- `/api/status` returns HTTP 200 with Bob's app name, status, and version.
+- `/api/status` returns HTTP 200 with Bob's app name, status, version, AI readiness, cache mode, and OpenAPI availability.
 - Swagger UI loads the backend API documentation.
 
 If health is down, check Render logs before changing application code.

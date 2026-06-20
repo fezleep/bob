@@ -18,6 +18,9 @@ type BackendAvailability =
       label: "Backend online";
       detail: string;
       version?: string;
+      aiEnabled?: boolean;
+      cacheMode?: string;
+      openApiAvailable?: boolean;
     }
   | {
       state: "unavailable";
@@ -229,6 +232,9 @@ async function getBackendAvailability(): Promise<BackendAvailability> {
       appName?: string;
       status?: string;
       version?: string;
+      aiEnabled?: boolean;
+      cacheMode?: string;
+      openApiAvailable?: boolean;
     };
 
     return {
@@ -236,6 +242,9 @@ async function getBackendAvailability(): Promise<BackendAvailability> {
       label: "Backend online",
       detail: `${body.appName || "Bob API"} returned status ${body.status || "ok"}.`,
       version: body.version,
+      aiEnabled: body.aiEnabled,
+      cacheMode: body.cacheMode,
+      openApiAvailable: body.openApiAvailable,
     };
   } catch {
     return {
@@ -279,6 +288,28 @@ function CapabilityGrid({ items }: { items: Capability[] }) {
 
 export default async function CapabilitiesPage() {
   const backend = await getBackendAvailability();
+  const backendSignals =
+    backend.state === "online"
+      ? [
+          {
+            label: "AI insights",
+            value:
+              typeof backend.aiEnabled === "boolean"
+                ? backend.aiEnabled
+                  ? "Configured"
+                  : "Disabled"
+                : "Not reported",
+          },
+          {
+            label: "Insight cache",
+            value: backend.cacheMode || "Not reported",
+          },
+          {
+            label: "API docs",
+            value: backend.openApiAvailable === false ? "Not reported" : "OpenAPI/Swagger",
+          },
+        ]
+      : [];
 
   return (
     <div className="space-y-6 sm:space-y-7">
@@ -323,6 +354,16 @@ export default async function CapabilitiesPage() {
             {backend.state === "online" && backend.version ? (
               <p className="mt-3 text-xs text-faint">Version: {backend.version}</p>
             ) : null}
+            {backendSignals.length > 0 ? (
+              <dl className="mt-4 grid gap-2 border-t border-border/45 pt-4">
+                {backendSignals.map((signal) => (
+                  <div key={signal.label} className="flex items-center justify-between gap-3">
+                    <dt className="text-xs text-faint">{signal.label}</dt>
+                    <dd className="text-right text-xs font-medium text-muted">{signal.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            ) : null}
           </aside>
         </div>
       </section>
@@ -355,7 +396,8 @@ export default async function CapabilitiesPage() {
           <h2 className="mt-2 text-base font-medium text-ink">Check the backend directly</h2>
           <p className="mt-3 text-sm leading-6 text-muted">
             Backend health is verified with <code>/api/status</code> and
-            <code> /actuator/health</code> on the configured backend origin.
+            <code> /actuator/health</code>. Status reports version, AI readiness,
+            cache mode, and API documentation availability without exposing secrets.
           </p>
         </article>
       </section>
