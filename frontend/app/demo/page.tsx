@@ -1,12 +1,51 @@
 import Link from "next/link";
 
+const reviewerActions = [
+  {
+    href: "/capabilities",
+    label: "View capabilities",
+    helper: "Implemented, production-ready, prepared, and roadmap items.",
+    external: false,
+  },
+  {
+    href: "/capabilities#references",
+    label: "Find API docs",
+    helper: "Swagger and OpenAPI paths for the backend origin.",
+    external: false,
+  },
+  {
+    href: "https://github.com/fezleep/bob",
+    label: "Open GitHub",
+    helper: "Repository, docs, deployment notes, and implementation details.",
+    external: true,
+  },
+];
+
+const storyPoints = [
+  {
+    label: "Input",
+    value: "12 leads",
+    helper: "Records, notes, activity, status, and follow-up dates.",
+  },
+  {
+    label: "Signals",
+    value: "3 active",
+    helper: "Overdue, due today, and stale work rise above the list.",
+  },
+  {
+    label: "Output",
+    value: "1 focus order",
+    helper: "Clear overdue risk first, then protect the best near-term deal.",
+  },
+];
+
 const attentionItems = [
   {
     name: "Avery Brooks",
     company: "Northstar Clinics",
     signal: "Overdue follow-up",
-    reason: "Asked for rollout timing, then went quiet after pricing.",
-    next: "Send a concise implementation note today.",
+    reason: "Qualified healthcare operator asked for rollout timing, then went quiet after pricing.",
+    next: "Send the implementation note and ask whether procurement needs security details.",
   },
   {
     name: "Mina Santos",
@@ -19,8 +58,8 @@ const attentionItems = [
     name: "Jon Bell",
     company: "Harbor Studio",
     signal: "Stale",
-    reason: "Strong fit, but no movement since the discovery note.",
-    next: "Restart with the last known pain point.",
+    reason: "Strong fit for the product, but no movement since the discovery note.",
+    next: "Restart with the last known pain point: missed client handoffs.",
   },
 ];
 
@@ -43,6 +82,7 @@ const capabilities = [
   ["PostgreSQL persistence", "Implemented"],
   ["JWT auth", "Implemented"],
   ["AI insights", "Implemented"],
+  ["In-process AI cache", "Implemented"],
   ["Follow-up engine", "Implemented"],
   ["Attention queue", "Implemented"],
   ["Production diagnostics", "Implemented"],
@@ -61,25 +101,55 @@ export default function DemoWorkspacePage() {
               Demo workspace
             </p>
             <h1 className="mt-3 break-words text-3xl font-semibold leading-tight text-ink sm:text-4xl">
-              See what needs attention now.
+              A 60-second tour of Bob&apos;s operating loop.
             </h1>
             <p className="mt-4 text-sm leading-6 text-muted sm:text-[0.95rem]">
-              This frontend-only demo uses sample data and does not require login.
-              It shows how Bob turns records into priorities, context, and next
-              actions when the backend is unavailable.
+              This public demo uses realistic sample data and does not require
+              login. It shows how Bob turns lead records, follow-up dates, notes,
+              activity, and AI-style insight into priorities and next actions.
             </p>
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+              <Link
+                href="/capabilities"
+                className="focus-ring warm-button inline-flex h-11 items-center justify-center rounded-md px-4 text-sm font-medium"
+              >
+                View capabilities
+              </Link>
+              <a
+                href="https://github.com/fezleep/bob"
+                target="_blank"
+                rel="noreferrer"
+                className="focus-ring inline-flex h-11 items-center justify-center rounded-md border border-border/65 bg-elevated/30 px-4 text-sm font-medium text-muted transition duration-200 hover:border-accent/34 hover:bg-elevated/55 hover:text-ink"
+              >
+                Open GitHub
+              </a>
+            </div>
           </div>
           <div className="rounded-lg border border-accent/18 bg-black/[0.14] p-4">
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
-              Backend status
+              Demo boundary
             </p>
             <p className="mt-3 text-sm font-medium text-ink">Not required for demo mode</p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              The live workspace still uses the API. This page is a public product
-              showcase with static sample data.
+              The live workspace uses the API, PostgreSQL, JWT auth, and optional
+              OpenAI configuration. This page is a static showcase for reviewers.
             </p>
           </div>
         </div>
+      </section>
+
+      <section className="grid gap-3 md:grid-cols-3">
+        {storyPoints.map((item) => (
+          <article key={item.label} className="quiet-panel rounded-lg p-5">
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+              {item.label}
+            </p>
+            <p className="mt-3 text-2xl font-semibold tabular-nums text-ink">
+              {item.value}
+            </p>
+            <p className="mt-3 text-sm leading-6 text-muted">{item.helper}</p>
+          </article>
+        ))}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,0.6fr)]">
@@ -90,7 +160,7 @@ export default function DemoWorkspacePage() {
                 Attention queue
               </p>
               <h2 className="mt-2 text-base font-medium text-ink">
-                Prioritized from follow-up timing and activity.
+                Prioritized from follow-up timing, status, and recent activity.
               </h2>
             </div>
             <span className="rounded-full border border-accent/28 bg-accent/[0.08] px-3 py-1 text-xs font-medium text-[rgb(var(--champagne))]">
@@ -150,21 +220,22 @@ export default function DemoWorkspacePage() {
             Bob read
           </p>
           <h2 className="mt-2 text-base font-medium text-ink">
-            AI-style operational insight.
+            AI insight turns context into a focus order.
           </h2>
           <div className="mt-5 space-y-4 text-sm leading-6 text-muted">
             <p>
-              The workspace has one urgent risk: Northstar is qualified, but the
-              conversation is slipping because implementation timing is unanswered.
+              The real app can ask the backend for a Bob read: summary, operational
+              read, suggested next action, and attention signal. OpenAI may be disabled
+              in production when environment configuration is missing.
             </p>
             <p>
-              Cedar Supply is the best near-term opportunity. The next action is
-              not another generic check-in; it is confirming the buying criteria
-              before the technical review.
+              In this sample, Northstar is the urgent risk because implementation
+              timing is unanswered. Cedar Supply is the best near-term opportunity
+              because the procurement window is open now.
             </p>
             <p className="rounded-lg border border-accent/20 bg-accent/[0.06] p-4 text-[rgb(var(--champagne))]">
-              Recommended focus: clear overdue follow-up first, then protect the
-              qualified Cedar window.
+              Recommended focus: clear the overdue Northstar follow-up first, then
+              protect the qualified Cedar window.
             </p>
           </div>
         </article>
@@ -231,6 +302,46 @@ export default function DemoWorkspacePage() {
               </span>
             </div>
           ))}
+        </div>
+      </section>
+
+      <section className="quiet-panel rounded-lg p-5 sm:p-6">
+        <div className="max-w-2xl">
+          <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
+            Reviewer next steps
+          </p>
+          <h2 className="mt-2 text-base font-medium text-ink">
+            Where to inspect the implementation.
+          </h2>
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          {reviewerActions.map((action) => {
+            const className =
+              "focus-ring block h-full rounded-lg border border-border/55 bg-elevated/[0.2] p-4 transition duration-200 hover:border-accent/30 hover:bg-elevated/45";
+
+            const content = (
+              <>
+                <p className="text-sm font-medium text-ink">{action.label}</p>
+                <p className="mt-2 text-sm leading-6 text-muted">{action.helper}</p>
+              </>
+            );
+
+            return action.external ? (
+              <a
+                key={action.href}
+                href={action.href}
+                target="_blank"
+                rel="noreferrer"
+                className={className}
+              >
+                {content}
+              </a>
+            ) : (
+              <Link key={action.href} href={action.href} className={className}>
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </section>
     </div>
