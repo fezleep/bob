@@ -31,23 +31,23 @@ const primaryActions = [
 
 const productNotes = [
   {
-    title: "See what needs attention now",
-    body: "Bob turns records, follow-ups, and stale conversations into a short operating queue.",
+    title: "Problem",
+    body: "Lead context usually lives across notes, statuses, stale conversations, and calendar memory.",
   },
   {
-    title: "Understand why it matters",
-    body: "Lead status, notes, activity, and AI-style reads stay close to the next decision.",
+    title: "Bob's answer",
+    body: "Bob turns that scattered context into an attention queue, follow-up timing, and a next useful action.",
   },
   {
-    title: "Move with a next action",
-    body: "Follow-up timing and pipeline context make the next useful step visible without CRM weight.",
+    title: "Review path",
+    body: "Open the public demo first, then inspect capabilities, API docs, auth, persistence, and deployment notes.",
   },
 ];
 
 const workflowSteps = [
   "Capture the record and current relationship state.",
   "Read the attention queue for overdue, due, or stale work.",
-  "Use the AI operational read to summarize context and risk.",
+  "Use the AI operational read to summarize context, risk, and the next action.",
   "Move the lead through the pipeline when the next action changes.",
 ];
 
@@ -61,7 +61,8 @@ const capabilities = [
   { label: "Attention queue", state: "Implemented" },
   { label: "Production diagnostics", state: "Implemented" },
   { label: "OpenAPI docs", state: "Implemented" },
-  { label: "Render + Neon deployment", state: "Prepared" },
+  { label: "Vercel frontend", state: "Production" },
+  { label: "Render + Neon deployment", state: "Production" },
   { label: "Oracle VM deployment", state: "Prepared" },
   { label: "Redis or async jobs", state: "Roadmap" },
 ];
@@ -98,9 +99,9 @@ export default function Home() {
               Turn scattered records into clear priorities, context, and next actions.
             </h1>
             <p className="mt-4 max-w-2xl text-sm leading-6 text-muted sm:text-[0.95rem]">
-              Bob helps small teams see what needs attention, why it matters, and
-              what to do next. Follow-up, context, and an AI-style operational read
-              live in one calm workspace.
+              Bob is a fullstack portfolio product for lead operations: public
+              demo, protected workspace, Spring Boot API, PostgreSQL persistence,
+              JWT auth, OpenAPI docs, and AI-assisted lead insight when configured.
             </p>
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -126,8 +127,8 @@ export default function Home() {
               Sample data, no login, no backend dependency.
             </p>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Recruiters and reviewers can open the demo even if the production
-              API or database provider is paused.
+              Recruiters and reviewers can understand the product story even if
+              the production API, database provider, or OpenAI configuration is paused.
             </p>
           </div>
         </div>
@@ -170,7 +171,8 @@ export default function Home() {
           <p className="mt-3 text-sm leading-6 text-muted">
             Bob is not just lead CRUD. It combines pipeline state, follow-up timing,
             activity history, notes, and AI insight so a reviewer can understand
-            the current work in one pass.
+            the current work in one pass. The public demo shows the workflow with
+            static sample data; the live workspace uses the backend.
           </p>
         </div>
         <div className="mt-5 grid gap-3 md:grid-cols-4">
@@ -199,8 +201,8 @@ export default function Home() {
             </h2>
           </div>
           <p className="max-w-xl text-sm leading-6 text-muted">
-            Implemented items map to the current app. Prepared deployment paths are
-            documented, and roadmap items are labeled separately.
+            Implemented and production items map to the current app. Prepared
+            deployment paths and roadmap infrastructure are labeled separately.
           </p>
         </div>
         <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -213,7 +215,7 @@ export default function Home() {
               <span
                 className={[
                   "shrink-0 rounded-full border px-2 py-1 text-[0.7rem] font-medium uppercase tracking-[0.08em]",
-                  capability.state === "Implemented"
+                  capability.state === "Implemented" || capability.state === "Production"
                     ? "border-accent/30 bg-accent/[0.08] text-[rgb(var(--champagne))]"
                     : capability.state === "Prepared"
                       ? "border-[rgb(var(--champagne)/0.28)] bg-[rgb(var(--champagne)/0.08)] text-[rgb(var(--champagne))]"

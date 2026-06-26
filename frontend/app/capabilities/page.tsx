@@ -72,13 +72,13 @@ const implementedCapabilities: Capability[] = [
   {
     title: "AI operational read",
     state: "Implemented",
-    body: "Stored insights summarize context, risk, and next action when AI configuration is available.",
+    body: "Stored insights summarize context, risk, and next action when backend OpenAI configuration is available.",
     dependsOnBackend: true,
   },
   {
-    title: "AI insight cache",
+    title: "In-process AI insight cache",
     state: "Implemented",
-    body: "Repeated Bob read requests can reuse a cached result when the lead context hash has not changed.",
+    body: "Repeated Bob read requests can reuse a process-local cached result when the lead context hash has not changed.",
     dependsOnBackend: true,
   },
   {
@@ -99,7 +99,7 @@ const preparedCapabilities: Capability[] = [
   {
     title: "Render + Neon deployment path",
     state: "Prepared",
-    body: "Repository docs describe deploying the Spring Boot backend on Render with managed PostgreSQL on Neon.",
+    body: "Repository docs describe the production backend path on Render with managed PostgreSQL on Neon.",
     meta: "Documented deployment path",
   },
   {
@@ -120,12 +120,12 @@ const plannedCapabilities: Capability[] = [
   {
     title: "External Redis AI cache",
     state: "Planned",
-    body: "Roadmap candidate if cache sharing across backend instances becomes necessary. Redis is not required today.",
+    body: "Roadmap candidate if cache sharing across backend instances becomes necessary. Redis is not implemented today.",
   },
   {
     title: "RabbitMQ async AI jobs",
     state: "Planned",
-    body: "Roadmap candidate for background AI work. Current AI insight work remains direct and simple.",
+    body: "Roadmap candidate for background AI work. RabbitMQ is not implemented; current AI insight work remains direct.",
   },
   {
     title: "Observability dashboard",
@@ -135,7 +135,7 @@ const plannedCapabilities: Capability[] = [
   {
     title: "Kubernetes/deployment story",
     state: "Planned",
-    body: "Roadmap candidate only if orchestration needs outgrow the prepared Render, Neon, and Oracle paths.",
+    body: "Roadmap candidate only if orchestration needs outgrow the Render, Neon, and Oracle paths. Kubernetes is not implemented.",
   },
 ];
 
@@ -155,6 +155,12 @@ const references = [
     label: "OpenAPI JSON",
     href: "/v3/api-docs",
     body: "Backend path for the generated API document.",
+  },
+  {
+    label: "GitHub repository",
+    href: "https://github.com/fezleep/bob",
+    body: "Public repository with source, docs, and deployment notes.",
+    external: true,
   },
   {
     label: "Production recovery",
@@ -325,9 +331,10 @@ export default async function CapabilitiesPage() {
             </h1>
             <p className="mt-4 text-sm leading-6 text-muted sm:text-[0.95rem]">
               Bob is an AI-powered operational workspace that turns scattered
-              records into priorities, context, and next actions. This page keeps
-              the showcase honest: live capabilities, prepared foundations, and
-              roadmap ideas are labeled separately.
+              lead and activity context into priorities, follow-ups, attention
+              signals, and next actions. This page keeps the showcase honest:
+              production-ready pieces, prepared foundations, and roadmap ideas are
+              labeled separately.
             </p>
           </div>
 
@@ -402,7 +409,7 @@ export default async function CapabilitiesPage() {
         </article>
       </section>
 
-      <section>
+      <section id="references">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs font-medium uppercase tracking-[0.16em] text-faint">
@@ -461,7 +468,16 @@ export default async function CapabilitiesPage() {
             >
               <p className="text-sm font-medium text-ink">{reference.label}</p>
               <p className="mt-2 text-sm leading-6 text-muted">{reference.body}</p>
-              {reference.link ? (
+              {reference.external ? (
+                <a
+                  href={reference.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="focus-ring mt-4 inline-flex h-9 items-center rounded-md border border-border/65 bg-elevated/30 px-3 text-sm font-medium text-muted transition duration-200 hover:border-accent/34 hover:bg-elevated/55 hover:text-ink"
+                >
+                  Open
+                </a>
+              ) : reference.link ? (
                 <Link
                   href={reference.href}
                   className="focus-ring mt-4 inline-flex h-9 items-center rounded-md border border-border/65 bg-elevated/30 px-3 text-sm font-medium text-muted transition duration-200 hover:border-accent/34 hover:bg-elevated/55 hover:text-ink"

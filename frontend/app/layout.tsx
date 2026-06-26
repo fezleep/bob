@@ -7,7 +7,8 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "bob",
-  description: "quiet software for modern teams.",
+  description:
+    "AI-powered operational workspace for lead priorities, follow-ups, attention signals, and next actions.",
   icons: {
     icon: "/branding/bob-logo.png",
     shortcut: "/branding/bob-logo.png",
@@ -15,7 +16,8 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "bob",
-    description: "quiet software for modern teams.",
+    description:
+      "AI-powered operational workspace for lead priorities, follow-ups, attention signals, and next actions.",
     images: ["/branding/bob-mascot.png"],
   },
 };
