@@ -34,7 +34,7 @@ This project is also a public record of how I build: product first, architecture
 
 ## product preview / screenshots
 
-Screenshots were captured from local development. Production validation is still pending because the Railway environment had external instability during this pass.
+Screenshots were captured from local development. The current production path runs the frontend on Vercel, the backend on Render, and PostgreSQL on Neon.
 
 | Home | Workspace |
 | --- | --- |
@@ -87,6 +87,21 @@ Implemented today:
 | Quality | Maven tests, Spring Boot tests, ESLint, Next.js build, Playwright smoke tests, GitHub Actions |
 
 Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS RDS, AWS ECS/EKS, Terraform, and Kubernetes are roadmap items. They are not part of the current implementation.
+
+## current production state
+
+Bob is currently deployed as a small SaaS-style system: Next.js frontend on Vercel, Spring Boot backend on Render, and Neon Postgres as the database.
+
+Implemented production-facing pieces:
+
+- JWT authentication using httpOnly cookies
+- protected routes and session refresh in the frontend
+- protected backend APIs for operational data
+- OpenAPI/Swagger documentation on the backend
+- `/api/status` reporting AI readiness, cache mode, and OpenAPI availability
+- Render + Neon deployment documentation, with Oracle deployment documented as an alternative
+
+AI insights are available through the backend when configured. The insight cache is currently in-process and best-effort; Redis is not implemented. Redis, RabbitMQ, and Kubernetes remain roadmap items, not current infrastructure.
 
 ## architecture
 
@@ -196,9 +211,9 @@ Current auth flow:
 
 - users can register
 - users can log in
-- the backend issues a JWT
-- protected frontend routes check authentication
-- protected backend APIs require a bearer token
+- the backend issues a JWT in an httpOnly cookie
+- protected frontend routes check and refresh the current session
+- protected backend APIs require the authenticated session cookie
 - users can log out from the frontend
 
 Local auth values:
