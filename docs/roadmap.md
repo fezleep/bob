@@ -1,149 +1,135 @@
 # Roadmap
 
-This roadmap separates current implementation from future product and infrastructure work.
+This roadmap separates what exists today from what is production-current, prepared for extension, or only planned. Roadmap items are not implemented unless they appear in the implemented/current sections.
 
-## Current Foundation
+## Implemented
 
-Implemented today:
+Application foundation:
 
 - Java/Spring Boot backend
 - Next.js/TypeScript frontend
 - PostgreSQL persistence
-- Docker Compose for local database setup
 - Flyway database migrations
-- Spring Security authentication foundation
-- JWT login/register/current-user flow
-- BCrypt password hashing
-- user table with `USER` role
-- protected operational backend APIs
-- protected frontend workspace, pipeline, leads, and lead detail routes
-- lead CRUD APIs
-- lead status changes
-- lead follow-up timestamp on create and update flows
-- lead notes
-- lead activity history
-- attention queue API for overdue and due-today follow-ups
-- on-demand Bob read for lead summary, operational read, next action, and attention signal
-- follow-up timing included in Bob read prompt context
-- backend-only OpenAI integration with disabled state when AI is off, no API key is configured, or no model is configured
-- system status and actuator health endpoints
-- workspace, leads, lead detail, pipeline, home, about, login, and register frontend routes
-- intelligent lead filters
-- contextual search across core lead fields
-- command palette trigger and navigation
-- workspace attention queue UI for overdue and due-today follow-ups
+- Docker Compose for local PostgreSQL
 - GitHub Actions CI validation
 - Playwright smoke test foundation
 
-## Product Roadmap
+Authentication:
 
-### Workspace and Lead Workflow
+- register, login, and current-user API flow
+- BCrypt password hashing
+- JWT issuing and validation
+- `HttpOnly` auth cookie on the frontend
+- protected frontend routes for workspace, pipeline, leads, and lead detail
+- protected backend operational APIs
+- user table and current user role foundation
 
-Planned:
+Lead workflow:
+
+- lead create, list, detail, update, and status change APIs
+- lead statuses: `NEW`, `CONTACTED`, `QUALIFIED`, `CLOSED`, `LOST`
+- notes
+- activity history
+- next follow-up timestamp on create and update flows
+- attention queue for overdue and due-today follow-ups
+- workspace, pipeline, lead list, and lead detail UI
+- contextual lead search and status-aware filters
+- command palette navigation
+
+AI and system visibility:
+
+- backend-only OpenAI integration
+- explicit user-triggered Bob read generation
+- latest persisted AI insight per lead
+- follow-up timing included in AI context
+- safe disabled state when AI is not configured
+- best-effort in-process AI insight cache
+- `/api/status` endpoint with app name, status, version, AI readiness, cache mode, and OpenAPI availability
+- `/actuator/health`
+- Swagger UI and OpenAPI JSON through springdoc
+
+## Production-Ready / Current
+
+Current production stack:
+
+- frontend deployed on Vercel: `https://bob-kappa-eight.vercel.app`
+- backend deployed on Render: `https://bob-backend-taj4.onrender.com`
+- database on Neon PostgreSQL
+- Spring Boot API exposed over HTTPS through Render
+- Next.js frontend configured to call the Render backend origin
+- auth based on JWT plus `HttpOnly` cookie
+- OpenAPI/Swagger available on the backend
+- public non-sensitive status endpoint available at `/api/status`
+- local development supported with Docker Compose PostgreSQL
+
+Current operational assumptions:
+
+- Render free-tier cold starts or sleeping behavior may affect first request latency.
+- Neon is the production Postgres provider.
+- AI availability depends on backend environment configuration.
+- The in-process AI cache is a performance optimization, not durable state.
+- The backend remains the only component that owns provider secrets and database access.
+
+## Prepared / Future Extension
+
+These areas have architectural space or documentation support, but should not be described as completed product capability.
+
+Product extensions:
 
 - workspace or organization ownership model
 - lead ownership
-- follow-up reminders and notification behavior
-- richer lead actions
+- richer role-aware authorization
+- invite flow and admin controls
+- saved views and saved filters
+- richer command palette actions
 - import flow for lead lists
-- saved views for repeated workflows
-- role-aware collaboration rules
-
-### Authentication and Authorization
-
-Planned:
-
-- refresh token strategy
-- password reset
-- email verification
-- invite flow
-- workspace membership
-- admin role
-- authorization rules scoped to workspaces and leads
-
-### Pipeline
-
-Planned:
-
-- editable pipeline transitions from the kanban board
-- clearer closed and lost lead handling
-- pipeline metrics by status
-- aging indicators for leads that stay in one status too long
-
-### Search and Filters
-
-Planned:
-
-- contextual search across notes and activity history
-- saved filters
-- filter combinations
-- keyboard-friendly command palette actions
-- workspace-wide quick open behavior
-
-### Contextual Intelligence
-
-Implemented:
-
-- latest persisted Bob read per lead
-- explicit user-triggered AI generation
-- backend-only OpenAI API usage
-- follow-up state included in the AI prompt context
-- attention queue driven by overdue and due-today follow-ups
-
-Current limitations:
-
-- latest insight only, no insight history yet
-- no background processing
-- no Redis cache
-- no RabbitMQ jobs
-- no streaming or chat UI
-- no automated follow-up notifications or reminders
-
-Planned:
-
 - insight history and user feedback on generated reads
-- stale lead detection
+- stale lead detection and richer attention explanations
 - follow-up draft support
-- richer context cards that explain why a lead needs attention beyond follow-up timing
 
-AI should continue to be assistive and explicit. It should not perform autonomous lead updates.
+Backend extensions:
 
-## Backend Roadmap
-
-- stronger authorization around users, workspaces, and leads
-- API contract documentation
-- integration tests around persistence and API behavior
-- import processing for bulk lead creation
 - background jobs if imports, notifications, or intelligence workflows require them
-- domain events inside the modular monolith if workflow complexity grows
+- internal domain events inside the modular monolith as workflow complexity grows
+- broader integration tests around API and persistence behavior
+- stronger authorization scoped to users, workspaces, and leads
+- additional API contract examples around recruiter/demo flows
 
-## Frontend Roadmap
+Frontend extensions:
 
-- richer command palette behavior
-- lead action menus closer to the current context
 - improved keyboard flow for lead operations
-- saved workspace views
-- loading and error state refinement
+- richer loading and error states
+- editable pipeline transitions directly from the board
+- more detailed pipeline metrics
 - screenshot-ready public demo flow
 
-The frontend should remain operational, not decorative. The primary value is helping users scan, decide, and act.
+Deployment alternatives:
 
-## Infrastructure Roadmap
+- Oracle deployment remains an alternative/future path, documented separately.
+- AWS could become a future production host if requirements change.
 
-Current infrastructure:
+## Roadmap / Not Implemented
 
-- Docker Compose for local PostgreSQL
-- GitHub Actions for validation
+The following are not implemented in the current production stack:
 
-Future infrastructure options:
+- Redis
+- RabbitMQ
+- Kubernetes
+- Terraform-managed infrastructure
+- Prometheus metrics
+- Grafana dashboards
+- OpenTelemetry traces
+- distributed cache
+- asynchronous background workers
+- autonomous AI workflow updates
+- automated email or in-app follow-up reminders
+- password reset
+- email verification
+- refresh token rotation
+- full workspace/multi-tenant membership model
+- admin role and workspace-scoped permissions
+- bulk import processing
+- AI streaming or chat UI
+- durable AI insight history
 
-- Redis for cache, rate limiting, or short-lived workflow state
-- RabbitMQ for asynchronous background work
-- Prometheus for metrics
-- Grafana for dashboards
-- OpenTelemetry for traces and observability context
-- AWS for production hosting
-- Terraform for infrastructure as code
-- Kubernetes if orchestration needs justify the operational cost
-
-These are not current implementation details. They are roadmap candidates for a later production stage.
+These remain candidates for later stages. They should be discussed as deliberate next steps, not as existing production features.
