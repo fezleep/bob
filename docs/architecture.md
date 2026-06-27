@@ -1,124 +1,201 @@
 # Architecture
 
-bob is a fullstack SaaS/product engineering case built around a separated frontend and backend.
+Bob is a fullstack SaaS/product engineering case for lead workflow management. The production system is intentionally small and explicit: a Next.js frontend, a Spring Boot REST API, and PostgreSQL on Neon.
 
 ```text
 Browser
-  -> Next.js / React / TypeScript frontend
-  -> Spring Boot REST API with JWT authentication
-  -> Spring Data JPA
-  -> PostgreSQL
+  -> Vercel-hosted Next.js frontend
+  -> Render-hosted Spring Boot API
+  -> Neon PostgreSQL
 ```
 
-Docker Compose currently provides local PostgreSQL. Redis, RabbitMQ, Prometheus, Grafana, OpenTelemetry, AWS, Terraform, and Kubernetes are not implemented in this branch; they remain roadmap candidates.
+Production URLs:
 
-## System Shape
+- Frontend: `https://bob-kappa-eight.vercel.app`
+- Backend: `https://bob-backend-taj4.onrender.com`
+- Backend status: `https://bob-backend-taj4.onrender.com/api/status`
+- Swagger UI: `https://bob-backend-taj4.onrender.com/swagger-ui/index.html`
 
-- `frontend`: Next.js App Router application and operational workspace UI
-- `backend`: Java/Spring Boot API, security, and domain logic
-- `docs`: architecture, roadmap, and engineering documentation
-- `docker-compose.yml`: local PostgreSQL service
+The frontend never connects directly to the database and never calls OpenAI directly. The backend owns persistence, authentication validation, domain rules, API documentation, and AI provider access.
 
-The frontend communicates with the backend through HTTP APIs. The database is only accessed by the backend.
+## System Overview
 
-## Backend
+- `frontend`: Next.js App Router application for the public pages, authentication pages, workspace, pipeline, lead list, and lead detail workflows.
+- `backend`: Java/Spring Boot API for authentication, lead workflow, notes, activity history, attention queue, AI insights, status, and OpenAPI.
+- `docs`: deployment, architecture, roadmap, production recovery, and engineering notes.
+- `docker-compose.yml`: local PostgreSQL setup for development.
 
-The backend is a modular monolith. Current package areas:
-
-- `com.bob.modules.auth`: user registration, login, current-user lookup, BCrypt password hashing, JWT issuing
-- `com.bob.modules.leads`: lead records, status transitions, follow-up dates, attention queue, notes, activities, persisted lead insights, controllers, services, repositories, and DTOs
-- `com.bob.modules.ai`: AI configuration and the backend-only OpenAI client for operational lead insights
-- `com.bob.modules.system`: application status endpoint
-- `com.bob.shared.api`: consistent API error response and exception handling
-- `com.bob.config`: configuration properties and Spring Security wiring
-
-Spring Security runs statelessly. `/api/auth/register` and `/api/auth/login` are public, `/api/auth/me` requires a bearer token, operational APIs such as `/api/leads/**` require authentication, and `/actuator/health` remains public for local and CI health checks.
-
-## Authentication Flow
-
-1. The user registers or logs in from the frontend.
-2. The frontend sends credentials to the Spring Boot auth endpoint.
-3. The backend validates the request, checks a BCrypt password hash, and returns a signed JWT.
-4. The frontend stores the token in a practical stage-one cookie.
-5. Server-rendered protected pages read the cookie and include `Authorization: Bearer <token>` when calling the backend.
-6. Browser-side API calls also attach the token from the cookie.
-
-This is a foundation, not a complete enterprise identity system. Refresh tokens, password reset, email verification, workspace membership, and role-aware authorization beyond `USER` are roadmap work.
-
-## API Design
-
-Current API areas:
-
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `GET /api/auth/me`
-- `/api/leads`
-- `GET /api/leads/attention`
-- `/api/leads/{id}`
-- `/api/leads/{id}/status`
-- `/api/leads/{id}/notes`
-- `/api/leads/{id}/activities`
-- `GET /api/leads/{id}/insights`
-- `POST /api/leads/{id}/insights/generate`
-- `/api/status`
-- `/actuator/health`
-
-The public `/api/status` response is intentionally non-sensitive. It reports the app name, status, version, whether AI insights are fully configured, the current cache mode, and OpenAPI availability. It does not expose database URLs, JWT settings, API keys, credentials, provider responses, or internal passwords.
-
-API documentation is generated with springdoc OpenAPI. Swagger UI is available at `/swagger-ui/index.html`, and the OpenAPI JSON document is available at `/v3/api-docs` on the backend origin.
-
-Request validation uses Bean Validation. API errors use a shared response shape with timestamp, status, error, message, and field-level validation details where useful.
+The runtime boundary is HTTP between the frontend and backend. The persistence boundary is Spring Data JPA/Flyway against PostgreSQL.
 
 ## Frontend
 
-The frontend uses Next.js App Router, React, TypeScript, and Tailwind CSS.
+The frontend uses Next.js, React, TypeScript, Tailwind CSS, and the App Router.
 
-- `frontend/app`: routes for home, about, auth, workspace, pipeline, leads, and lead detail
-- `frontend/components`: reusable product components such as app shell, command palette, lead workspace, forms, notes, and pipeline board
-- `frontend/lib`: API client behavior, auth helpers, server auth helpers, lead types, formatting, and filters
+Current frontend responsibilities:
 
-Protected pages are `/workspace`, `/pipeline`, `/leads`, and `/leads/[id]`. Public pages are `/`, `/about`, `/login`, and `/register`.
+- public product pages
+- login and registration flows
+- protected workspace, pipeline, leads, and lead detail pages
+- command palette and navigation affordances
+- lead search and filtering
+- UI for notes, activities, follow-up timing, status changes, and AI-generated lead reads
+- server-side session checks through the auth cookie
+
+In production, the frontend is deployed to Vercel. It is configured to call the Render backend origin. Authenticated pages depend on the backend being reachable because session validation and domain data live behind the API.
+
+## Backend
+
+The backend is a Spring Boot modular monolith. It uses Spring Web, Spring Security, Spring Data JPA, Flyway, Bean Validation, springdoc OpenAPI, and PostgreSQL.
+
+Current backend areas:
+
+- `auth`: registration, login, current-user lookup, BCrypt password hashing, JWT issuing and validation.
+- `leads`: lead CRUD, status changes, follow-up dates, notes, activity history, attention queue, and persisted latest AI insight.
+- `ai`: backend-only OpenAI client, AI configuration, response parsing, safety-oriented prompt boundary, and in-process cache support.
+- `system`: public status endpoint.
+- `shared/api`: consistent error response and exception handling.
+- `config`: Spring Security and application configuration.
+
+The backend exposes operational APIs under `/api/**`. Public endpoints are intentionally limited to authentication entry points, `/api/status`, actuator health, and OpenAPI/Swagger documentation.
 
 ## Database
 
-PostgreSQL is the current source of truth. Flyway owns schema changes.
+PostgreSQL is the current source of truth. Production uses Neon Postgres. Local development uses PostgreSQL through Docker Compose.
 
-Current migrations cover:
+Flyway owns schema evolution. Current migrations cover:
 
 - application metadata
 - leads
+- users
 - lead notes
 - lead activities
-- users
 - latest generated lead insight per lead
 - lead next follow-up timestamp
 
-Schema changes should stay explicit, reviewable, and tied to the backend behavior that requires them.
+Schema changes should remain explicit and reviewable. The current production architecture does not use Oracle as the primary database; Oracle remains an alternative/future deployment path documented separately.
 
-## AI Boundary
+## Authentication
 
-The lead detail "Bob read" is Bob's first AI-assisted feature. The frontend never receives an OpenAI key and never calls OpenAI directly. Authenticated users call Bob's backend, and the backend builds a small lead context from lead name, company, status, timestamps, next follow-up timing, notes, and recent activity before calling the OpenAI Responses API. JWT tokens, headers, environment variables, credentials, and internal secrets are not included in the prompt.
+Authentication uses JWT plus an `HttpOnly` cookie.
+
+Flow:
+
+1. The user registers or logs in from the Next.js frontend.
+2. The frontend calls the Spring Boot auth API.
+3. The backend validates credentials and issues a signed JWT.
+4. The frontend stores that JWT in the `bob_token` auth cookie with `HttpOnly` cookie options.
+5. Server-side frontend code reads the cookie and uses it when calling protected backend APIs.
+6. Middleware and server routes use the cookie-backed session to protect application pages.
+
+This is a deliberate stage-one auth system. It is suitable for demonstrating secure separation of client, server, and API concerns, but it is not positioned as a complete enterprise identity platform.
+
+Known auth extensions not yet implemented:
+
+- refresh tokens
+- password reset
+- email verification
+- organization/workspace membership
+- role-aware authorization beyond the current user role foundation
+- invite flow and admin controls
+
+## API And OpenAPI
+
+The backend exposes REST APIs for auth, leads, notes, activities, status, and AI insight generation. API documentation is generated by springdoc OpenAPI.
+
+Useful production endpoints:
+
+- `/api/status`
+- `/actuator/health`
+- `/swagger-ui/index.html`
+- `/v3/api-docs`
+
+`/api/status` is public and intentionally non-sensitive. It reports:
+
+- `appName`
+- `status`
+- `version`
+- `aiEnabled`
+- `cacheMode`
+- `openApiAvailable`
+
+It does not expose database URLs, JWT secrets, OpenAI keys, credentials, provider responses, or internal passwords.
+
+Request validation uses Bean Validation. API errors use a shared response shape with timestamp, status, error, message, and field-level validation details where useful.
+
+## AI Insights
+
+Bob's AI feature is the lead detail "Bob read". It is an assistive, user-triggered read of a lead's current state.
+
+Current behavior:
+
+- the frontend calls Bob's backend, not OpenAI
+- the backend builds a compact lead context from lead profile, status, timestamps, follow-up timing, notes, and recent activity
+- the backend calls the configured OpenAI model only when AI is enabled and configured
+- the generated insight is persisted as the latest lead insight
+- the user can explicitly force regeneration
+- provider failures are surfaced as safe generic errors
+
+The AI prompt boundary excludes JWT tokens, cookies, headers, environment variables, credentials, and internal secrets. AI output is assistive only. It does not mutate lead workflow state, send messages, create reminders, or perform autonomous actions.
 
 AI configuration is environment-driven:
 
-- `BOB_AI_ENABLED`, default `false`
-- `BOB_AI_MODEL`, no default; set this to a model available to the OpenAI account
-- `OPENAI_API_KEY`, no default
+- `BOB_AI_ENABLED`
+- `BOB_AI_MODEL`
+- `OPENAI_API_KEY`
 
-If AI is disabled, the API key is missing, or the model is missing, the backend returns a clear unavailable state and generation requests do not call OpenAI. Provider failures are returned as safe generic errors without raw provider details, prompts, headers, or secrets. Insights are assistive only: they summarize context and suggest a next action, but they do not mutate lead workflow state, perform autonomous actions, or represent final business truth.
+If AI is disabled, the API key is missing, or the model is missing, the backend reports an unavailable state and generation requests do not call the provider.
 
-Lead insight generation also has a best-effort in-process cache keyed by lead id, model, and a SHA-256 hash of the same lead context sent to the AI provider. When the lead context is unchanged, cache-aware generation can return the cached insight metadata instead of calling the provider. Users can explicitly force regeneration from the lead detail UI or with `POST /api/leads/{id}/insights/generate?force=true`. Redis is not required for startup or production deployment in this branch; cache failure falls back to normal generation.
+## Cache
 
-## Follow-Up and Attention Flow
+AI insight generation has a best-effort in-process cache. The cache is keyed by lead id, model, and a hash of the lead context sent to the provider.
 
-Leads can store an optional `nextFollowUpAt` timestamp through the create and update API flows. The workspace attention queue reads leads with follow-up dates and returns only overdue or due-today items, ordered by urgency and relevant timestamp. Future scheduled follow-ups stay out of the queue until they become due.
+This means unchanged lead context can reuse cached insight metadata instead of calling the provider again. The cache is intentionally non-critical:
 
-The flow is intentionally synchronous and request-driven: lead -> follow-up date -> attention queue -> Bob read context. There are no background jobs, notifications, queues, or autonomous AI updates in this branch.
+- it is process-local
+- it is lost on restart or redeploy
+- it is not shared across backend instances
+- failure falls back to normal generation
 
-## Local Infrastructure
+Redis is not implemented in the current production stack. Redis remains a future extension candidate for shared cache, rate limiting, or short-lived workflow state.
 
-- Docker Compose starts PostgreSQL 16.
-- Spring Boot runs locally on port `8080` by default.
-- Next.js runs locally on port `3000` by default.
+## Deployment
 
-This keeps local review simple while preserving real frontend/backend/database boundaries.
+Current production deployment:
+
+- Frontend: Vercel
+- Backend: Render Web Service
+- Database: Neon PostgreSQL
+- API documentation: Swagger UI and OpenAPI served by the backend
+- Health/status checks: `/actuator/health` and `/api/status`
+
+Local development:
+
+- frontend on port `3000`
+- backend on port `8080`
+- PostgreSQL through Docker Compose
+
+The current deployment favors a recruiter/interview-friendly architecture: managed hosting, clear service boundaries, no committed secrets, and operational verification through public non-sensitive health/status endpoints.
+
+## Current Limits And Conscious Decisions
+
+Bob intentionally avoids presenting future infrastructure as current production capability.
+
+Current limits:
+
+- no Redis-backed distributed cache
+- no RabbitMQ or background job worker
+- no Kubernetes deployment
+- no Terraform-managed infrastructure
+- no Prometheus, Grafana, or OpenTelemetry instrumentation
+- no full multi-tenant workspace model
+- no role-aware collaboration model beyond the current auth foundation
+- no automated reminders, notifications, imports, or autonomous AI actions
+- no AI insight history beyond the latest persisted insight
+
+Conscious decisions:
+
+- Keep the backend as a modular monolith until product boundaries justify service extraction.
+- Keep AI behind the backend so provider credentials and prompts are never exposed to the browser.
+- Use Neon/Postgres as the primary production database because it matches the Spring Data/Flyway implementation and current deployment.
+- Keep Redis, RabbitMQ, Kubernetes, observability stack, and Terraform as roadmap items until there is a concrete operational need.
+- Treat Oracle as an alternative/future deployment path, not the current primary production stack.
