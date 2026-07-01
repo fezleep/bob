@@ -119,16 +119,18 @@ Recovery order:
 5. Confirm the frontend `NEXT_PUBLIC_API_BASE_URL` points at that backend.
 6. Retry login and protected navigation.
 
-## Manual Production Verification Checklist
+## Production Quick Check
 
-1. Open the backend health URL and confirm HTTP 200.
-2. Open the backend status URL and confirm HTTP 200.
-3. Confirm Railway backend and Postgres services are not paused.
-4. Confirm frontend `NEXT_PUBLIC_API_BASE_URL` points to the healthy backend origin.
-5. Log in through the deployed frontend.
-6. Go to Workspace.
-7. Go to Leads.
-8. Open one lead.
-9. Go to Pipeline.
-10. Refresh the page.
-11. Confirm the user remains logged in and no API-unavailable banner appears.
+Use this short checklist after a production deploy or suspected outage:
+
+1. Confirm the Vercel production deploy is running the latest `main` commit.
+2. Confirm the Render backend service is live. Render free tier services can cold start, so allow the first request time to wake the service.
+3. Open `$BACKEND_ORIGIN/actuator/health` and confirm HTTP 200.
+4. Open `$BACKEND_ORIGIN/api/status` and confirm HTTP 200 with `aiEnabled`, `cacheMode`, and `openApiAvailable`.
+5. Open `$BACKEND_ORIGIN/swagger-ui/index.html` and confirm Swagger UI loads.
+6. Log in through the deployed frontend.
+7. Refresh a protected route and confirm the session remains active.
+8. Generate an AI insight from a lead detail page.
+9. Reopen or regenerate the same insight and confirm cache metadata appears when the insight is reused.
+
+The AI insight cache is in-process and best-effort. It is not Redis, and cached entries can disappear after backend restarts or platform recycling.
